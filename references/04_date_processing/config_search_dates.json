@@ -1,0 +1,34 @@
+{
+  "mongo_uri": "mongodb://localhost:27017",
+  "source_db": "Batched-Statutes",
+  "source_collection": "statute",
+  "target_db": "Batched-Statutes",
+  "target_collection": "statute",
+  "azure_api_key": "your-azure-api-key-here",
+  "azure_endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
+  "gpt_model": "gpt-4o",
+  "azure_api_version": "2024-11-01-preview",
+  "processing": {
+    "batch_size": 100,
+    "max_workers": 4,
+    "enable_gpt_search": true,
+    "enable_regex_search": true,
+    "enable_progress_tracking": true
+  },
+  "search": {
+    "date_patterns": [
+      "\\b\\d{1,2}-\\w{3}-\\d{4}\\b",
+      "\\b\\d{4}-\\d{2}-\\d{2}\\b",
+      "\\b\\d{1,2}/\\d{1,2}/\\d{4}\\b",
+      "\\b\\d{1,2}-\\d{1,2}-\\d{4}\\b"
+    ],
+    "gpt_prompt_template": "Extract dates from the following text: {text}",
+    "max_tokens": 200,
+    "temperature": 0.1
+  },
+  "logging": {
+    "level": "INFO",
+    "file_output": true,
+    "console_output": true
+  }
+} 

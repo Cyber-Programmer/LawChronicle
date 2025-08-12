@@ -1,0 +1,31 @@
+{
+  "mongo_uri": "mongodb://localhost:27017",
+  "source_db": "Batched-Statutes",
+  "source_collection": "statute",
+  "target_db": "Batch-Base-Grouped",
+  "target_collection": "statute",
+  "azure_api_key": "your-azure-api-key-here",
+  "azure_endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
+  "gpt_model": "gpt-4o",
+  "azure_api_version": "2024-11-01-preview",
+  "processing": {
+    "similarity_threshold": 0.8,
+    "batch_size": 1000,
+    "max_workers": 4,
+    "enable_gpt_disambiguation": true,
+    "enable_progress_tracking": true
+  },
+  "grouping": {
+    "legal_suffixes": [
+      " Act", " Ordinance", " Law", " Rule", " Regulation", 
+      " Amendment", " Bill", " Order", " Notification", " Circular"
+    ],
+    "enable_parenthetical_removal": true,
+    "enable_similarity_merging": true
+  },
+  "logging": {
+    "level": "INFO",
+    "file_output": true,
+    "console_output": true
+  }
+} 

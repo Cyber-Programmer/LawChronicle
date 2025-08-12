@@ -1,0 +1,45 @@
+{
+  "mongo_uri": "mongodb://localhost:27017",
+  "source_db": "Batch-Base-Grouped-Filled",
+  "source_collection": "batch1",
+  "target_db": "Batch-Statute-Versioned-Filled",
+  "target_collection": "batch1",
+  "azure_api_key": "your-azure-api-key-here",
+  "azure_endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
+  "gpt_model": "gpt-4o",
+  "azure_api_version": "2024-11-01-preview",
+  "processing": {
+    "batch_size": 1000,
+    "max_workers": 4,
+    "enable_gpt_ordering": true,
+    "enable_progress_tracking": true
+  },
+  "versioning": {
+    "default_labels": [
+      "Original",
+      "First Amendment",
+      "Second Amendment",
+      "Third Amendment"
+    ],
+    "confidence_threshold": 0.7,
+    "enable_manual_override": true,
+    "enable_conflict_resolution": true
+  },
+  "date_processing": {
+    "date_formats": [
+      "%Y-%m-%d",
+      "%d-%m-%Y",
+      "%d/%m/%Y",
+      "%m/%d/%Y",
+      "%d-%b-%Y",
+      "%d %B %Y",
+      "%B %d, %Y"
+    ],
+    "enable_date_validation": true
+  },
+  "logging": {
+    "level": "INFO",
+    "file_output": true,
+    "console_output": true
+  }
+} 

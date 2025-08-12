@@ -1,0 +1,9 @@
+streamlit
+pymongo
+fastapi
+uvicorn
+rapidfuzz
+numpy
+openpyxl
+python-dateutil
+tqdm 
