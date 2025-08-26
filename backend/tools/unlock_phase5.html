@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unlock Phase 5</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1f2937;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 10px;
+        }
+        .action-section {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #10b981;
+            background-color: #f0fdf4;
+        }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        .success {
+            color: #059669;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #d1fae5;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status {
+            background-color: #f3f4f6;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .warning {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔓 Unlock Phase 5: Statute Versioning</h1>
+        
+        <div class="warning">
+            <strong>Issue:</strong> Phase 5 is locked because it requires Phase 4 to be completed first.
+        </div>
+
+        <div class="action-section">
+            <h2>Quick Solutions</h2>
+            
+            <h3>Option 1: Mark Phase 4 as Completed</h3>
+            <p>This will unlock Phase 5 immediately by updating the localStorage progress data.</p>
+            <button onclick="completePhase4()">✅ Complete Phase 4</button>
+            <div id="phase4-result"></div>
+            
+            <h3>Option 2: Remove Phase 5 Dependencies</h3>
+            <p>This will make Phase 5 always available regardless of other phase completion.</p>
+            <button onclick="unlockPhase5()">🔓 Unlock Phase 5</button>
+            <div id="phase5-result"></div>
+            
+            <h3>Option 3: Complete All Previous Phases</h3>
+            <p>This marks all phases 1-4 as completed.</p>
+            <button onclick="completeAllPhases()">🏁 Complete All Previous Phases</button>
+            <div id="all-phases-result"></div>
+        </div>
+
+        <div class="action-section">
+            <h2>Current Status</h2>
+            <button onclick="checkStatus()">🔍 Check Phase Status</button>
+            <div id="status-display" class="status"></div>
+        </div>
+
+        <div class="action-section">
+            <h2>Reset Options</h2>
+            <button onclick="resetProgress()" style="background-color: #dc2626;">🔄 Reset All Progress</button>
+            <div id="reset-result"></div>
+        </div>
+
+        <div class="action-section">
+            <h2>Instructions</h2>
+            <ol>
+                <li>Click <strong>"Complete Phase 4"</strong> to unlock Phase 5</li>
+                <li>Go back to the LawChronicle dashboard</li>
+                <li>Refresh the page (F5)</li>
+                <li>Phase 5 should now be available and clickable</li>
+                <li>Navigate to Phase 5 to test the new frontend components</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Phase status constants
+        const PHASE_STATUS = {
+            LOCKED: 'locked',
+            READY: 'ready',
+            IN_PROGRESS: 'in-progress',
+            COMPLETED: 'completed'
+        };
+
+        // Update phase progress in localStorage
+        function updatePhaseProgress(phaseId, status, progress) {
+            try {
+                const existingData = localStorage.getItem('phase_progress');
+                const progressData = existingData ? JSON.parse(existingData) : {};
+                
+                progressData[phaseId] = { status, progress };
+                localStorage.setItem('phase_progress', JSON.stringify(progressData));
+                return true;
+            } catch (error) {
+                console.error('Error updating phase progress:', error);
+                return false;
+            }
+        }
+
+        // Get all phase progress
+        function getAllPhaseProgress() {
+            try {
+                const existingData = localStorage.getItem('phase_progress');
+                return existingData ? JSON.parse(existingData) : {};
+            } catch (error) {
+                console.error('Error getting phase progress:', error);
+                return {};
+            }
+        }
+
+        // Complete Phase 4
+        function completePhase4() {
+            const success = updatePhaseProgress(4, PHASE_STATUS.COMPLETED, 100);
+            const resultDiv = document.getElementById('phase4-result');
+            
+            if (success) {
+                resultDiv.innerHTML = '<div class="success">✅ Phase 4 marked as completed! Refresh the dashboard to see changes.</div>';
+            } else {
+                resultDiv.innerHTML = '<div style="color: red;">❌ Failed to update Phase 4 status.</div>';
+            }
+        }
+
+        // Unlock Phase 5 by making it ready
+        function unlockPhase5() {
+            const success = updatePhaseProgress(5, PHASE_STATUS.READY, 0);
+            const resultDiv = document.getElementById('phase5-result');
+            
+            if (success) {
+                resultDiv.innerHTML = '<div class="success">🔓 Phase 5 unlocked! Refresh the dashboard to see changes.</div>';
+            } else {
+                resultDiv.innerHTML = '<div style="color: red;">❌ Failed to unlock Phase 5.</div>';
+            }
+        }
+
+        // Complete all phases 1-4
+        function completeAllPhases() {
+            let allSuccess = true;
+            
+            for (let i = 1; i <= 4; i++) {
+                const success = updatePhaseProgress(i, PHASE_STATUS.COMPLETED, 100);
+                if (!success) allSuccess = false;
+            }
+            
+            const resultDiv = document.getElementById('all-phases-result');
+            
+            if (allSuccess) {
+                resultDiv.innerHTML = '<div class="success">🏁 All phases 1-4 completed! Phase 5 should now be available.</div>';
+            } else {
+                resultDiv.innerHTML = '<div style="color: red;">❌ Some phases failed to update.</div>';
+            }
+        }
+
+        // Check current status
+        function checkStatus() {
+            const progressData = getAllPhaseProgress();
+            const statusDiv = document.getElementById('status-display');
+            
+            let statusHtml = '<h3>Current Phase Progress:</h3>';
+            
+            for (let i = 1; i <= 5; i++) {
+                const phase = progressData[i];
+                const status = phase ? phase.status : 'Not set';
+                const progress = phase ? phase.progress : 0;
+                
+                statusHtml += `<div>Phase ${i}: ${status} (${progress}% complete)</div>`;
+            }
+            
+            statusDiv.innerHTML = statusHtml;
+        }
+
+        // Reset all progress
+        function resetProgress() {
+            try {
+                localStorage.removeItem('phase_progress');
+                document.getElementById('reset-result').innerHTML = '<div class="success">🔄 All progress reset successfully!</div>';
+            } catch (error) {
+                document.getElementById('reset-result').innerHTML = '<div style="color: red;">❌ Failed to reset progress.</div>';
+            }
+        }
+
+        // Check status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkStatus();
+        });
+    </script>
+</body>
+</html>
