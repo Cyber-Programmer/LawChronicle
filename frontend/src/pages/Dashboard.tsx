@@ -10,7 +10,6 @@ import {
   Play,
   CheckCircle,
   Clock,
-  AlertCircle,
   Loader2,
   Pause,
   BarChart3,
@@ -19,9 +18,7 @@ import {
 import { 
   PHASE_STATUS, 
   updatePhaseProgress, 
-  getAllPhaseProgress,
-  completePhase,
-  startPhase as startPhaseUtil
+  getAllPhaseProgress
 } from '../utils/phaseProgress';
 
 // Phase configuration with dependencies and status
@@ -50,7 +47,7 @@ const Dashboard: React.FC = () => {
       status: PHASE_STATUS.READY,
       progress: 0,
       color: 'blue',
-      dependencies: [],
+      dependencies: [], // No dependencies - can run independently
       route: '/phase1'
     },
     {
@@ -61,7 +58,7 @@ const Dashboard: React.FC = () => {
       status: PHASE_STATUS.READY,
       progress: 0,
       color: 'green',
-      dependencies: [1], // Requires Phase 1 to be completed
+      dependencies: [], // No dependencies - can run independently
       route: '/phase2'
     },
     {
@@ -72,7 +69,7 @@ const Dashboard: React.FC = () => {
       status: PHASE_STATUS.READY,
       progress: 0,
       color: 'purple',
-      dependencies: [2], // Requires Phase 2 to be completed
+      dependencies: [], // No dependencies - can run independently
       route: '/phase3'
     },
     {
@@ -80,10 +77,10 @@ const Dashboard: React.FC = () => {
       name: 'Date Processing',
       description: 'Extract, parse, and standardize dates using AI and regex',
       icon: Calendar,
-      status: PHASE_STATUS.LOCKED,
+      status: PHASE_STATUS.READY,
       progress: 0,
       color: 'orange',
-      dependencies: [3], // Requires Phase 3 to be completed
+      dependencies: [], // No dependencies - can run independently
       route: '/phase4'
     },
     {
@@ -91,10 +88,10 @@ const Dashboard: React.FC = () => {
       name: 'Statute Versioning',
       description: 'Group statutes by base names, assign versions, remove duplicates',
       icon: GitBranch,
-      status: PHASE_STATUS.LOCKED,
+      status: PHASE_STATUS.READY, // Changed from LOCKED to READY
       progress: 0,
       color: 'indigo',
-      dependencies: [4], // Requires Phase 4 to be completed
+      dependencies: [], // No dependencies - can run independently
       route: '/phase5'
     },
     {
@@ -123,6 +120,8 @@ const Dashboard: React.FC = () => {
         }))
       );
     }
+
+    // Phase 4 is now accessible without dependencies
   }, []);
 
   // Listen for storage changes to sync phase progress across tabs
@@ -157,28 +156,8 @@ const Dashboard: React.FC = () => {
     localStorage.setItem('phase_progress', JSON.stringify(progressData));
   }, [phases]);
 
-  // Update phase status based on dependencies
-  useEffect(() => {
-    setPhases(prevPhases => 
-      prevPhases.map(phase => {
-        if (phase.dependencies.length === 0) {
-          return phase; // No dependencies, keep current status
-        }
-        
-        // Check if all dependencies are completed
-        const allDependenciesCompleted = phase.dependencies.every(depId => {
-          const depPhase = prevPhases.find(p => p.id === depId);
-          return depPhase?.status === PHASE_STATUS.COMPLETED;
-        });
-        
-        if (allDependenciesCompleted && phase.status === PHASE_STATUS.LOCKED) {
-          return { ...phase, status: PHASE_STATUS.READY };
-        }
-        
-        return phase;
-      })
-    );
-  }, [phases]);
+  // Since all phases are now independent, no dependency checking needed
+  // All phases can be accessed and run independently
 
   // Update phase status and progress
   const updatePhaseStatus = (phaseId: number, status: string, progress: number) => {
@@ -348,6 +327,12 @@ const Dashboard: React.FC = () => {
                 className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
               >
                 Complete P3
+              </button>
+              <button
+                onClick={() => simulatePhaseCompletion(4)}
+                className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
+              >
+                Complete P4
               </button>
             </div>
           </div>

@@ -45,7 +45,7 @@ const DatabaseNormalization: React.FC<DatabaseNormalizationProps> = ({ config: p
   const [progress, setProgress] = useState<number>(0);
   const [results, setResults] = useState<NormalizationResult[]>([]);
   const [error, setError] = useState<string>('');
-  const [showConfig, setShowConfig] = useState(false);
+  const [showConfig, setShowConfig] = useState(true);
   const [testResults, setTestResults] = useState<any>(null);
   const [connectionTest, setConnectionTest] = useState<any>(null);
   const [debugScript, setDebugScript] = useState<any>(null);
@@ -67,7 +67,7 @@ const DatabaseNormalization: React.FC<DatabaseNormalizationProps> = ({ config: p
     };
     
     setConfig(newConfig);
-    
+    localStorage.setItem('dbNormConfig', JSON.stringify(newConfig));
     // Update parent configuration
     if (onConfigUpdate) {
       onConfigUpdate({ [field]: value });
@@ -207,17 +207,20 @@ const DatabaseNormalization: React.FC<DatabaseNormalizationProps> = ({ config: p
   }, []);
 
   // Update local config when propConfig changes
-  useEffect(() => {
-    if (propConfig) {
-      setConfig({
-        mongo_uri: propConfig.mongo_uri || 'mongodb://localhost:27017',
-        source_db: propConfig.source_db || 'Statutes',
-        source_collection: propConfig.source_collection || 'raw_statutes',
-        target_db: propConfig.target_db || 'Statutes',
-        target_collection: propConfig.target_collection || 'normalized_statutes'
-      });
-    }
-  }, [propConfig]);
+useEffect(() => {
+  const savedConfig = localStorage.getItem('dbNormConfig');
+  if (savedConfig) {
+    setConfig(JSON.parse(savedConfig));
+  } else if (propConfig) {
+    setConfig({
+      mongo_uri: propConfig.mongo_uri || 'mongodb://localhost:27017',
+      source_db: propConfig.source_db || 'Statutes',
+      source_collection: propConfig.source_collection || 'raw_statutes',
+      target_db: propConfig.target_db || 'Statutes',
+      target_collection: propConfig.target_collection || 'normalized_statutes'
+    });
+  }
+}, [propConfig]);
 
   const testConnection = async () => {
     try {
@@ -312,11 +315,19 @@ const DatabaseNormalization: React.FC<DatabaseNormalizationProps> = ({ config: p
         throw new Error('Failed to generate scripts');
       }
 
-      // Step 2: Execute normalization
+      // Step 2: Execute normalization using service architecture
       setCurrentStep('Executing normalization process...');
       setProgress(30);
       
-      const normalizationResponse = await axios.post('/api/v1/phase2/execute-normalization', config);
+      const serviceRequest = {
+        metadata: {
+          source_database: config.source_db,
+          target_database: config.target_db,
+          overwrite_existing: true
+        }
+      };
+      
+      const normalizationResponse = await axios.post('/api/v1/phase2/start-normalization', serviceRequest);
       
       if (normalizationResponse.data.success) {
         setResults(normalizationResponse.data.results);
@@ -494,12 +505,6 @@ const DatabaseNormalization: React.FC<DatabaseNormalizationProps> = ({ config: p
                 />
               </label>
             </div>
-            <button
-              onClick={() => setShowConfig(!showConfig)}
-              className="text-sm text-primary-600 hover:text-primary-800"
-            >
-              {showConfig ? 'Hide' : 'Show'} Configuration
-            </button>
           </div>
         </div>
         
@@ -1095,7 +1100,7 @@ const DatabaseNormalization: React.FC<DatabaseNormalizationProps> = ({ config: p
           <li>• <strong>Alphabetical Sorting:</strong> Smart sorting with year-based grouping within statute name categories</li>
         </ul>
         <p className="text-xs text-blue-600 mt-2">
-          The process creates collections: <code>normalized_statutes</code> → <code>cleaned_statutes</code> → <code>sorted_statutes</code>
+          The process creates collections: <code>normalized_statutes</code> → <code>sorted_statutes</code>
         </p>
       </div>
 
@@ -1110,7 +1115,7 @@ const DatabaseNormalization: React.FC<DatabaseNormalizationProps> = ({ config: p
               <h3 className="text-lg font-medium text-gray-900 mt-4">Confirm Rollback</h3>
               <div className="mt-2 px-7 py-3">
                 <p className="text-sm text-gray-500">
-                  Are you sure you want to rollback all normalization changes? This will delete all normalized, cleaned, and sorted collections.
+                  Are you sure you want to rollback all normalization changes? This will delete all normalized and sorted collections.
                 </p>
               </div>
               <div className="flex justify-center space-x-4 mt-4">

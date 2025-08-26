@@ -9,9 +9,10 @@ interface StatuteAnalysisProps {
 
 interface StatuteNamesResponse {
   field_used: string | null;
-  total_unique_names: number;
-  names_sample: string[];
-  name_distribution: Record<string, number>;
+  count: number;
+  statute_names: string[];
+  name_distribution?: Record<string, number>;
+  limit?: number;
   timestamp: string;
 }
 
@@ -24,16 +25,20 @@ const StatuteAnalysis: React.FC<StatuteAnalysisProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAllNames, setShowAllNames] = useState(false);
+  const [limit, setLimit] = useState(20);
+  const [offset, setOffset] = useState(0);
 
-  const fetchStatuteNames = async () => {
+  const fetchStatuteNames = async (newLimit = limit, newOffset = offset) => {
     if (databaseInfo.status !== 'connected') return;
-    
     setIsLoading(true);
     setError(null);
-    
     try {
-      const response = await axios.get('/api/v1/phase1/statute-names');
+      const response = await axios.get('/api/v1/phase1/statute-names', {
+        params: { limit: newLimit, offset: newOffset }
+      });
       setStatuteData(response.data);
+      setLimit(newLimit);
+      setOffset(newOffset);
     } catch (error: any) {
       setError(error.response?.data?.detail || error.message || 'Failed to fetch statute names');
     } finally {
@@ -43,8 +48,9 @@ const StatuteAnalysis: React.FC<StatuteAnalysisProps> = ({
 
   useEffect(() => {
     if (databaseInfo.status === 'connected') {
-      fetchStatuteNames();
+      fetchStatuteNames(limit, offset);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [databaseInfo.status, lastRefresh]);
 
   const exportStatuteData = () => {
@@ -60,9 +66,11 @@ const StatuteAnalysis: React.FC<StatuteAnalysisProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const filteredNames = statuteData?.names_sample.filter(name =>
-    name.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredNames = statuteData && Array.isArray(statuteData.statute_names)
+    ? statuteData.statute_names.filter(name =>
+        typeof name === 'string' && name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : [];
 
   const sortedDistribution = statuteData?.name_distribution 
     ? Object.entries(statuteData.name_distribution)
@@ -99,7 +107,7 @@ const StatuteAnalysis: React.FC<StatuteAnalysisProps> = ({
         <h3 className="text-lg font-medium text-gray-900 mb-2">Analysis Failed</h3>
         <p className="text-red-600 mb-4">{error}</p>
         <button
-          onClick={fetchStatuteNames}
+          onClick={() => fetchStatuteNames()}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
           Retry Analysis
@@ -115,7 +123,7 @@ const StatuteAnalysis: React.FC<StatuteAnalysisProps> = ({
         <h3 className="text-lg font-medium text-gray-900 mb-2">No Statute Data</h3>
         <p className="text-gray-600 mb-4">Click the button below to analyze statute names</p>
         <button
-          onClick={fetchStatuteNames}
+          onClick={() => fetchStatuteNames()}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
           <TrendingUp className="w-4 h-4 mr-2" />
@@ -125,6 +133,26 @@ const StatuteAnalysis: React.FC<StatuteAnalysisProps> = ({
     );
   }
 
+  // Pagination controls
+  const totalCount = statuteData?.count || 0;
+  const currentPage = Math.floor(offset / limit) + 1;
+  const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+
+  const handlePrev = () => {
+    if (offset - limit >= 0) {
+      fetchStatuteNames(limit, offset - limit);
+    }
+  };
+  const handleNext = () => {
+    if (offset + limit < totalCount) {
+      fetchStatuteNames(limit, offset + limit);
+    }
+  };
+  const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLimit = parseInt(e.target.value, 10);
+    fetchStatuteNames(newLimit, 0);
+  };
+
   return (
     <div>
       {/* Summary Header */}
@@ -132,13 +160,15 @@ const StatuteAnalysis: React.FC<StatuteAnalysisProps> = ({
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Statute Analysis</h3>
           <p className="text-sm text-gray-600">
-            {statuteData.total_unique_names.toLocaleString()} unique statutes found
+            {typeof statuteData?.count === 'number'
+              ? statuteData.count.toLocaleString()
+              : '0'} unique statutes found
           </p>
         </div>
         
         <div className="flex items-center space-x-3">
           <button
-            onClick={fetchStatuteNames}
+            onClick={() => fetchStatuteNames()}
             className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             <TrendingUp className="w-4 h-4 mr-2" />
@@ -191,7 +221,11 @@ const StatuteAnalysis: React.FC<StatuteAnalysisProps> = ({
             <FileText className="w-5 h-5 text-primary-600" />
             <div>
               <p className="text-sm text-gray-600">Total Unique</p>
-              <p className="text-2xl font-bold text-gray-900">{statuteData.total_unique_names.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{
+                typeof statuteData?.count === 'number'
+                  ? statuteData.count.toLocaleString()
+                  : '0'
+              }</p>
             </div>
           </div>
         </div>
@@ -201,14 +235,18 @@ const StatuteAnalysis: React.FC<StatuteAnalysisProps> = ({
             <BarChart3 className="w-5 h-5 text-success-600" />
             <div>
               <p className="text-sm text-gray-600">Sample Size</p>
-              <p className="text-2xl font-bold text-gray-900">{statuteData.names_sample.length.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{
+                Array.isArray(statuteData?.statute_names) && typeof statuteData.statute_names.length === 'number'
+                  ? statuteData.statute_names.length.toLocaleString()
+                  : '0'
+              }</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Name Distribution Chart */}
-      {sortedDistribution.length > 0 && (
+  {statuteData.name_distribution && sortedDistribution.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-medium text-gray-900">Top Statute Distribution</h4>
@@ -233,12 +271,16 @@ const StatuteAnalysis: React.FC<StatuteAnalysisProps> = ({
                     <div
                       className="bg-primary-600 h-2 rounded-full transition-all duration-300"
                       style={{ 
-                        width: `${(count / Math.max(...Object.values(statuteData.name_distribution))) * 100}%` 
+                        width: `${(
+                          statuteData.name_distribution
+                            ? (count / Math.max(...Object.values(statuteData.name_distribution))) * 100
+                            : 0
+                        )}%` 
                       }}
                     ></div>
                   </div>
                   <span className="text-sm text-gray-600 w-12 text-right">
-                    {count.toLocaleString()}
+                    {typeof count === 'number' ? count.toLocaleString() : '0'}
                   </span>
                 </div>
               </div>
@@ -249,17 +291,42 @@ const StatuteAnalysis: React.FC<StatuteAnalysisProps> = ({
 
       {/* Sample Names */}
       <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Sample Statute Names</h4>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-900">Sample Statute Names</h4>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handlePrev}
+              disabled={offset === 0}
+              className="px-2 py-1 text-sm rounded border bg-white text-gray-700 disabled:opacity-50"
+            >Prev</button>
+            <span className="text-xs text-gray-600">Page {currentPage} of {totalPages}</span>
+            <button
+              onClick={handleNext}
+              disabled={offset + limit >= totalCount}
+              className="px-2 py-1 text-sm rounded border bg-white text-gray-700 disabled:opacity-50"
+            >Next</button>
+            <select value={limit} onChange={handleLimitChange} className="ml-2 px-2 py-1 text-sm border rounded">
+              {[10, 20, 50, 100].map(size => (
+                <option key={size} value={size}>{size} / page</option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div className="space-y-2">
           {filteredNames.length > 0 ? (
             filteredNames.map((name, index) => (
               <div key={index} className="p-3 bg-gray-50 rounded-lg border">
                 <div className="text-sm text-gray-900">{name}</div>
-                {statuteData.name_distribution[name] && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    Count: {statuteData.name_distribution[name].toLocaleString()}
-                  </div>
-                )}
+                {statuteData?.name_distribution &&
+                  typeof statuteData.name_distribution[name] === 'number' && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      Count: {
+                        typeof statuteData.name_distribution[name] === 'number'
+                          ? statuteData.name_distribution[name].toLocaleString()
+                          : '0'
+                      }
+                    </div>
+                  )}
               </div>
             ))
           ) : (

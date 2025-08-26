@@ -1,0 +1,80 @@
+{
+  "batch": "batch_3",
+  "target_collection": "batch_3",
+  "start_time": "2025-08-19T08:37:12.736271",
+  "end_time": "2025-08-19T08:37:13.992155",
+  "duration_seconds": 1.255884,
+  "total_documents": 619,
+  "processed": 619,
+  "written": 619,
+  "failures": 0,
+  "samples": [
+    {
+      "_id": "689f056342d7d99cf9e6ff58",
+      "Date": "23-Nov-1971",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 90,
+        "processing_timestamp": "2025-08-19T08:37:12.755859",
+        "original_fields": [
+          "Date"
+        ],
+        "merged_date": "23-Nov-1971",
+        "normalized_date": "23-Nov-1971"
+      }
+    },
+    {
+      "_id": "689f056342d7d99cf9e6ff59",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T08:37:12.775933",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    },
+    {
+      "_id": "689f056342d7d99cf9e6ff5a",
+      "Date": "01-Jan-1965",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 90,
+        "processing_timestamp": "2025-08-19T08:37:12.778288",
+        "original_fields": [
+          "Date"
+        ],
+        "merged_date": "01-Jan-1965",
+        "normalized_date": "01-Jan-1965"
+      }
+    },
+    {
+      "_id": "689f056342d7d99cf9e6ff5b",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T08:37:12.780361",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    },
+    {
+      "_id": "689f056342d7d99cf9e6ff5c",
+      "Date": "22-Jul-1969",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 90,
+        "processing_timestamp": "2025-08-19T08:37:12.782471",
+        "original_fields": [
+          "Date"
+        ],
+        "merged_date": "22-Jul-1969",
+        "normalized_date": "22-Jul-1969"
+      }
+    }
+  ],
+  "date_format": "DD-MMM-YYYY"
+}

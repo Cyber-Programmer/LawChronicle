@@ -1,0 +1,76 @@
+{
+  "batch": "batch_5",
+  "target_collection": "batch_5",
+  "start_time": "2025-08-19T08:44:05.520777",
+  "end_time": "2025-08-19T08:44:06.044064",
+  "duration_seconds": 0.523287,
+  "total_documents": 634,
+  "processed": 634,
+  "written": 634,
+  "failures": 0,
+  "samples": [
+    {
+      "_id": "689f056742d7d99cf9e704a8",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T08:44:05.539851",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    },
+    {
+      "_id": "689f056742d7d99cf9e704a9",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T08:44:05.551945",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    },
+    {
+      "_id": "689f056742d7d99cf9e704ae",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T08:44:05.553143",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    },
+    {
+      "_id": "689f056742d7d99cf9e704b1",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T08:44:05.554087",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    },
+    {
+      "_id": "689f056742d7d99cf9e704b2",
+      "Date": "11-Apr-1994",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 90,
+        "processing_timestamp": "2025-08-19T08:44:05.555392",
+        "original_fields": [
+          "Date"
+        ],
+        "merged_date": "11-Apr-1994",
+        "normalized_date": "11-Apr-1994"
+      }
+    }
+  ],
+  "date_format": "DD-MMM-YYYY"
+}

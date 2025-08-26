@@ -1,0 +1,970 @@
+📋 LOGS TAB - COMPREHENSIVE PROCESSING INFORMATION
+
+This tab shows detailed processing, merging, and versioning information.
+
+🔍 LOG LEVELS:
+- DEBUG: Most detailed information (recommended for troubleshooting)
+- INFO: General processing information and comprehensive reports
+- WARNING: Important warnings and issues
+- ERROR: Error messages only
+
+📊 COMPREHENSIVE REPORTS:
+After processing completes, a detailed report will appear here showing:
+- Source collection statistics
+- Target collection details  
+- Versioning statistics
+- Processing details
+- GPT usage statistics
+- Version label distribution
+- Recent GPT ordering decisions
+
+💡 TIP: Set log level to 'DEBUG' to see all processing details in real-time.
+[21:41:18] INFO: Database connection successful. Found 404 source documents.
+[21:41:22] INFO: GPT connection successful
+[21:41:26] INFO: Started statute versioning process
+[21:41:27] INFO: Found 404 group documents in batch2
+[21:41:35] INFO: Loaded 227 unique base groups from batch2
+[21:41:35] INFO: Processed 404 documents, merged 145 documents with duplicate base_names
+[21:41:35] INFO: Groups with statutes: 403, Groups without statutes: 1
+[21:41:35] INFO: Total statutes loaded: 409
+[21:41:35] INFO: ============================================================
+[21:41:35] INFO: DETAILED MERGE REPORT
+[21:41:35] INFO: ============================================================
+[21:41:35] INFO: MERGE SUMMARY:
+[21:41:35] INFO:   Total groups: 227
+[21:41:35] INFO:   Groups with merges: 76
+[21:41:35] INFO:   Total documents merged: 140
+[21:41:35] INFO: 
+[21:41:35] INFO: MERGE LOGIC EXPLANATION:
+[21:41:35] INFO:   1. Documents are grouped by 'base_name' field from source collection
+[21:41:35] INFO:   2. Similar base_names (similarity >= 0.85) are merged together
+[21:41:35] INFO:   3. Similarity is calculated using SequenceMatcher algorithm
+[21:41:35] INFO:   4. Text normalization removes punctuation and converts to lowercase
+[21:41:35] INFO:   5. Example: 'Benazir Bhutto Shaheed University At Layari Karachi'
+[21:41:35] INFO:      and 'Benazir Bhutto Shaheed University At Lyari Karachi'
+[21:41:35] INFO:      would be merged due to high similarity (only 'Layari' vs 'Lyari')
+[21:41:35] INFO: 
+[21:41:35] INFO: GROUP: Banking Tribunals
+[21:41:35] INFO:   First document: 6881eba4ea729c03d693e99e (1 statutes)
+[21:41:35] INFO:   Merged document 1: 6881eba4ea729c03d693e99f (1 statutes)
+[21:41:35] INFO:     - Banking Tribunals (Validation Of Orders) Act 1994 (01-Dec-1994, Act)
+[21:41:35] INFO:   Merged document 2: 6881eba4ea729c03d693e9a0 (1 statutes)
+[21:41:35] INFO:     - Banking Tribunals Ordinance 1984 (1984-12-31, Ordinance)
+[21:41:35] INFO: 
+[21:41:35] INFO: GROUP: Banks
+[21:41:35] INFO:   First document: 6881eba4ea729c03d693e9a1 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9a2 (1 statutes)
+[21:41:36] INFO:     - Banks (Nationalization) (Payment Of Compensation) Rules 1974 (1997-07-02, Rule)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693e9a3 (1 statutes)
+[21:41:36] INFO:     - Banks (Nationalization) Act 1974 (04-Mar-1974, Act)
+[21:41:36] INFO:   Merged document 3: 6881eba4ea729c03d693e9a4 (1 statutes)
+[21:41:36] INFO:     - Banks (Transfer Of Assets And Liabilities) Ordinance 1973 (1973-11-21, Ordinance)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Basic Democracies
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9a8 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9a9 (1 statutes)
+[21:41:36] INFO:     - Basic Democracies Order (Amendment) Ordinance 1966 (1966-06-02, Amendments)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Benazir Bhutto Shaheed University At Layari Karachi
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9ac (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9ad (1 statutes)
+[21:41:36] INFO:     - Benazir Bhutto Shaheed University At Lyari Karachi Act 2009 (28-Jan-2010, Act)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Benazir Income Support Programme
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9ae (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9af (1 statutes)
+[21:41:36] INFO:     - Benazir Income Support Programme Ordinance 2010 (2010-04-18, Ordinance)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Bolan Medical College
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9bd (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9be (1 statutes)
+[21:41:36] INFO:     - Bolan Medical College (Board Of Governors) Act 1990 (15-Feb-1990, Act)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Bolan University Of Medical And Health Sciences
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9bf (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9c0 (1 statutes)
+[21:41:36] INFO:     - Bolan University Of Medical And Health Sciences Act 2017 (20-Dec-2017, Act)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Brokers And Agents Registration
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9c4 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9c5 (1 statutes)
+[21:41:36] INFO:     - Brokers And Agents Registration Rules Ii Of 2001 (2013-04-04, Rule)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Cantonment
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9ce (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9d4 (1 statutes)
+[21:41:36] INFO:     - Cantonments (Second Amendment) Ordinance 1979 (1979-09-15, Amendments)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693e9db (1 statutes)
+[21:41:36] INFO:     - Cantonments Ordinance 2002 (03-Dec-2002, Ordinance)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Cantonment Areas Union Account
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9d0 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9d1 (1 statutes)
+[21:41:36] INFO:     - Cantonment Areas Union Committees (Zakat Fund) Rules 1966 (1966-05-21, Rule)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Cantonment Rent Restriction
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9d3 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9dd (1 statutes)
+[21:41:36] INFO:     - Cantonments Rent Restriction Act 1963 (1963-04-27, Act)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Cantonments
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9d5 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9d6 (1 statutes)
+[21:41:36] INFO:     - Cantonments (Requisitioning Of Immovable Property) Ordinance 1948 (28-Jan-1948, Ordinance)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Cantonments Local Government
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9d8 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9d9 (1 statutes)
+[21:41:36] INFO:     - Cantonments Local Government (Elections) Ordinance 2002 (18-Oct-2002, Ordinance)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693e9da (1 statutes)
+[21:41:36] INFO:     - Cantonments Local Government Elections Rules 2002 (2002-10-29, Rule)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Capital Development Authority
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9de (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9df (1 statutes)
+[21:41:36] INFO:     - Capital Development Authority (Fourth Amendment) Ordinance 1996 (1996-12-12, Amendments)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693e9e0 (1 statutes)
+[21:41:36] INFO:     - Capital Development Authority Ordinance 1960 (27-Jun-1960, Ordinance)
+[21:41:36] INFO:   Merged document 3: 6881eba4ea729c03d693e9e1 (1 statutes)
+[21:41:36] INFO:     - Capital Development Authority Special Court (Recovery Of Illegal Gains) Ordinance 1997 (1997-02-15, Ordinance)
+[21:41:36] INFO:   Merged document 4: 6881eba4ea729c03d693ea85 (1 statutes)
+[21:41:36] INFO:     - Coastal Development Authority (Amendment) Act 2006 (22-Dec-2006, Amendments)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Capital Issues
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9e2 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9e3 (1 statutes)
+[21:41:36] INFO:     - Capital Issues (Continuance Of Control) (Amendment) Ordinance 1965 (1965-05-27, Amendments)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693e9e4 (1 statutes)
+[21:41:36] INFO:     - Capital Issues (Continuance Of Control) Act (Application To The Provincially Administered Tribal Areas Of The N.-W.F.P.) Regulation 1987 (1987-04-02, Regulation)
+[21:41:36] INFO:   Merged document 3: 6881eba4ea729c03d693e9e5 (1 statutes)
+[21:41:36] INFO:     - Capital Issues (Exemption) Order 1967 (1991-05-02, Order)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Capital Territory Local Government
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9e6 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9e7 (1 statutes)
+[21:41:36] INFO:     - Capital Territory Local Government Ordinance 1979 (01-Jun-1979, Ordinance)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693e9eb (1 statutes)
+[21:41:36] INFO:     - Captial Territory Local Government Ordinance 1979 (1979-08-18, Ordinance)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Census
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9f2 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9f3 (1 statutes)
+[21:41:36] INFO:     - Census Ordinance 1959 (21-Mar-1959, Ordinance)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Central Depositories
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9f5 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9f6 (1 statutes)
+[21:41:36] INFO:     - Central Depositories Ordinance 1997 (1997-01-28, Ordinance)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Central Employees Benevolent Fund And Group Insurance
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9f7 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9f8 (1 statutes)
+[21:41:36] INFO:     - Central Employees Benevolent Fund And Group Insurance Act 1969 (23-Feb-1969, Act)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Central Officer
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693e9fd (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693e9fe (1 statutes)
+[21:41:36] INFO:     - Central Law Officers (Amendment) Ordinance 2010 (2010-04-29, Amendments)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693e9ff (1 statutes)
+[21:41:36] INFO:     - Central Law Officers Ordinance 1970 (1970-03-28, Ordinance)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Centres Of Excellence Employees
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea02 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea03 (1 statutes)
+[21:41:36] INFO:     - Centres Of Excellency Act 1974 (1974-04-22, Act)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chartered Accountants
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea0f (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea10 (1 statutes)
+[21:41:36] INFO:     - Chartered Accountants Ordinance 1961 (01-Jun-1983, Ordinance)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chemical Weapons Convention Implementation
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea14 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea15 (1 statutes)
+[21:41:36] INFO:     - Chemical Weapons Convention Implemention Ordinance 2000 (1946-01-01, Ordinance)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chief Executive Order 1 Election Commission Order
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea18 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea4b (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 9 Term Of Chief Election Commissioner Order 2000 (2000-11-04, Order)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chief Executive Order 10 National Kashmir Committee Order
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea1a (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea26 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 2 National Kashmir Committee Order 2002 (2002-01-15, Order)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chief Executive Order 10 Provisional Constitution Order
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea1b (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea49 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 7 Provisional Constitution (Amendment) Order 2000 (2000-07-15, Amendments)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chief Executive Order 12 Referendum Order
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea1e (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea1f (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 13 Referendum (Amendment) Order 2002 (2002-04-25, Amendments)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chief Executive Order 14Conduct Of General Elections Order
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea20 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea21 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 15 Conduct Of Elections (Second Amendment ) Order 2002 (2002-06-17, Amendments)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693ea23 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 17Conduct Of General Elections (Amendment) Order 2002 (2002-06-25, Amendments)
+[21:41:36] INFO:   Merged document 3: 6881eba4ea729c03d693ea2a (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 21 Conduct Of General Elections (Fourth Amendment) Order 2002 (2002-07-31, Amendments)
+[21:41:36] INFO:   Merged document 4: 6881eba4ea729c03d693ea2c (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 23 Conduct Of General Elections (Fifth Amendment) Order 2002 (2002-08-21, Amendments)
+[21:41:36] INFO:   Merged document 5: 6881eba4ea729c03d693ea35 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 30 Conduct Of General Elections (Sixth Amendment) Order 2002 (2002-10-09, Amendments)
+[21:41:36] INFO:   Merged document 6: 6881eba4ea729c03d693ea36 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 31 Conduct Of General Elections (Seventh Amendment) Order 2002 (2002-10-19, Amendments)
+[21:41:36] INFO:   Merged document 7: 6881eba4ea729c03d693ea39 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 34 Conduct Of General Elections (Eighth Amendment) Order 2002 (2002-10-29, Amendments)
+[21:41:36] INFO:   Merged document 8: 6881eba4ea729c03d693ea3a (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 35 Conduct Of General Elections (Ninth Amendment) Order 2002 (2002-11-06, Amendments)
+[21:41:36] INFO:   Merged document 9: 6881eba4ea729c03d693ea3c (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 38 Conduct Of General Elections (Tenth Amendment) Order 2002 (2002-11-21, Amendments)
+[21:41:36] INFO:   Merged document 10: 6881eba4ea729c03d693ea47 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 7 Conduct Of General Elections Order 2002 (2002-02-27, Order)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chief Executive Order 16Appointment Of Federal Ministers And Oath Of Office Order
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea22 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea3f (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 4 Appointment Of Federal Ministers And Oath Of Office (Amendment) Order 2002 (2002-02-25, Amendments)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693ea40 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 4 Appointment Of Provincial Ministers And Oath Of Office (Amendment) Order 2001 (2001-06-28, Amendments)
+[21:41:36] INFO:   Merged document 3: 6881eba4ea729c03d693ea43 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 5 Appointment Of Provincial Ministers Oath Of Office (Amendment) Order 2002 (2002-02-25, Amendments)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chief Executive Order 18 Political Parties Order
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea24 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea29 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 20 Political Parties (Amendment) Order 2002 (2002-07-22, Amendments)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693ea2b (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 22 Police Order 2002 (2002-08-14, Order)
+[21:41:36] INFO:   Merged document 3: 6881eba4ea729c03d693ea31 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 28 Political Parties (Amendment) Order 2002 (2002-06-28, Amendments)
+[21:41:36] INFO:   Merged document 4: 6881eba4ea729c03d693ea48 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 7 Police (Amendment) Order 2001 (2001-08-12, Amendments)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chief Executive Order 19 Qualification To Hold Public Order
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea25 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea38 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 33 Qualification To Hold Public Offices (Amendment) Order 2002 (2002-10-26, Amendments)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chief Executive Order 2 Supreme Court Judges Order
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea28 (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea41 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 4 Supreme Court Judges (Pensionary Benefits) (Amendment) Order 2000 (2000-03-30, Amendments)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693ea44 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 5 High Court Judges (Service Benefits) Order 2000 (2000-03-30, Order)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chief Executive Order 24 Legal Framework Order
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea2d (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea32 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 29 Legal Framework (Amendment) Order 2002 (2000-05-12, Amendments)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693ea37 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 32 Legal Framework (Second Amendment) Order 2002 (2002-10-26, Amendments)
+[21:41:36] INFO:   Merged document 3: 6881eba4ea729c03d693ea3b (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 37 Legal Frame Work (Removal Of Difficulty) Order 2002 (2002-11-15, Order)
+[21:41:36] INFO:   Merged document 4: 6881eba4ea729c03d693ea42 (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 41 Legal Frame Work (Removal Of Difficulty) Order 2002 (22-Nov-2002, Order)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chief Executive Order 25 Election Of Members Of Senate From The Federally Administered Tribal Areas Order
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea2e (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea3d (1 statutes)
+[21:41:36] INFO:     - Chief Executive Order 39 Election Of Members Of Senate From The Federally Administered Tribal Areas (Repeal) Order 2002 (2002-11-21, Order)
+[21:41:36] INFO: 
+[21:41:36] INFO: GROUP: Chief Martial Administrator Order No. 65
+[21:41:36] INFO:   First document: 6881eba4ea729c03d693ea4c (1 statutes)
+[21:41:36] INFO:   Merged document 1: 6881eba4ea729c03d693ea4d (1 statutes)
+[21:41:36] INFO:     - Chief Martial Law Administrator Order 1979 No. 66 (1979-04-30, Order)
+[21:41:36] INFO:   Merged document 2: 6881eba4ea729c03d693ea4e (1 statutes)
+[21:41:36] INFO:     - Chief Martial Law Administrator Order 1979 No. 68 (1979-08-02, Order)
+[21:41:36] INFO:   Merged document 3: 6881eba4ea729c03d693ea4f (1 statutes)
+[21:41:36] INFO:     - Chief Martial Law Administrator Order 1979 No. 69 (1979-08-29, Order)
+[21:41:36] INFO:   Merged document 4: 6881eba4ea729c03d693ea50 (1 statutes)
+[21:41:36] INFO:     - Chief Martial Law Administrator Order 1979 No. 70 (1979-10-01, Order)
+[21:41:36] INFO:   Merged document 5: 6881eba4ea729c03d693ea51 (1 statutes)
+[21:41:36] INFO:     - Chief Martial Law Administrator Order 1979 No. 71 (1979-10-01, Order)
+[21:41:37] INFO:   Merged document 6: 6881eba4ea729c03d693ea52 (1 statutes)
+[21:41:37] INFO:     - Chief Martial Law Administrator Order 1979 No. 72 (1979-10-20, Order)
+[21:41:37] INFO:   Merged document 7: 6881eba4ea729c03d693ea53 (1 statutes)
+[21:41:37] INFO:     - Chief Martial Law Administrator Order 1979 No. 73 (1979-11-04, Order)
+[21:41:37] INFO:   Merged document 8: 6881eba4ea729c03d693ea54 (1 statutes)
+[21:41:37] INFO:     - Chief Martial Law Administrator Regulation 1979 No. 43 (1979-01-21, Regulation)
+[21:41:37] INFO:   Merged document 9: 6881eba4ea729c03d693ea55 (1 statutes)
+[21:41:37] INFO:     - Chief Martial Law Administrator Regulation 1979 No. 44 (1979-01-24, Regulation)
+[21:41:37] INFO:   Merged document 10: 6881eba4ea729c03d693ea56 (1 statutes)
+[21:41:37] INFO:     - Chief Martial Law Administrator Regulation 1979 No. 47 (1979-09-13, Regulation)
+[21:41:37] INFO:   Merged document 11: 6881eba4ea729c03d693ea57 (1 statutes)
+[21:41:37] INFO:     - Chief Martial Law Administrator Regulation 1979 No. 48 (1979-10-17, Regulation)
+[21:41:37] INFO:   Merged document 12: 6881eba4ea729c03d693ea58 (1 statutes)
+[21:41:37] INFO:     - Chief Martial Law Administrator Regulation 1979 No. 49 (1979-10-17, Regulation)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Child Marriage Restraint
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea5a (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea5b (1 statutes)
+[21:41:37] INFO:     - Child Marriages Restraint Act 1929 (1929-10-01, Act)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Cholistan Development Authority
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea5e (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea5f (1 statutes)
+[21:41:37] INFO:     - Cholistan Development Authority Act 1976 (1976-07-07, Act)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Cigarette
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea60 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea61 (1 statutes)
+[21:41:37] INFO:     - Cigarettes (Printing Of Warning) (Amendment) Ordinance 2002 (01-Jan-2002, Amendments)
+[21:41:37] INFO:   Merged document 2: 6881eba4ea729c03d693ea62 (1 statutes)
+[21:41:37] INFO:     - Cigarettes (Printing Of Warning) Ordinance 1989 (2012-03-17, Ordinance)
+[21:41:37] INFO:   Merged document 3: 6881eba4ea729c03d693ea63 (1 statutes)
+[21:41:37] INFO:     - Cigarettes (Printing Of Warning) Rules 2009 (01-Feb-2010, Rule)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: City University Of Science And Information Technology .
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea65 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea66 (1 statutes)
+[21:41:37] INFO:     - City University Of Science And Information Technology Peshawar Ordinance 2001 (2001-08-30, Ordinance)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Civil Aviation
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea67 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea68 (1 statutes)
+[21:41:37] INFO:     - Civil Aviation Ordinance 1960 (27-Jul-1960, Ordinance)
+[21:41:37] INFO:   Merged document 2: 6881eba4ea729c03d693ea69 (1 statutes)
+[21:41:37] INFO:     - Civil Aviation Rules 1978 (1979-01-20, Rule)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Civil Commotion Compensation Fund
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea6a (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea6b (1 statutes)
+[21:41:37] INFO:     - Civil Commotion Compensation Fund (Repeal) Ordinance 1972 (1972-08-05, Ordinance)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Civil Pioneer Force
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea70 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea71 (1 statutes)
+[21:41:37] INFO:     - Civil Pioneer Force Ordinance 1965 (09-Sep-1965, Ordinance)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Civil Procedure
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea72 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea8b (2 statutes)
+[21:41:37] INFO:     - Code Of Civil Procedure (Punjab Amendment) Ordinance 2020 (29-Apr-2020, Amendments)
+[21:41:37] INFO:     - Code Of Civil Procedure (Punjab Amendment) Act 2020 (11-Aug-2020, Amendments)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Civil Services
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea78 (2 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea79 (1 statutes)
+[21:41:37] INFO:     - Civil Services (Qualification For Appointment As High Court Judge) (Amendment) Act 1988 (17-Feb-1988, Amendments)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Co-Operative Societies Order
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea7e (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea7f (1 statutes)
+[21:41:37] INFO:     - Co-Operative Societies (Reforms) Ordinance 1980 (1980-12-31, Ordinance)
+[21:41:37] INFO:   Merged document 2: 6881eba5ea729c03d693eae1 (1 statutes)
+[21:41:37] INFO:     - Cooperative Societies (Repayment Of Loans) Ordinance 1960 (1964-05-28, Ordinance)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Coastal Development Authority
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea86 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea87 (1 statutes)
+[21:41:37] INFO:     - Coastal Development Authority Act 1994 (29-Nov-1994, Act)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Of Civil Procedure
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea8a (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea93 (1 statutes)
+[21:41:37] INFO:     - Code Of Criminal Procedure (Khyber Pakhtunkhwa) (Amendment) Act 2019 (17-Oct-2019, Amendments)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Of Conduct For Observers For The General Elections
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea8c (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea8e (1 statutes)
+[21:41:37] INFO:     - Code Of Conduct For Polling Personnel For The General Elections 2013 (07-Mar-2013, Code)
+[21:41:37] INFO:   Merged document 2: 6881eba4ea729c03d693ea8f (1 statutes)
+[21:41:37] INFO:     - Code Of Conduct For Security Personnel For The General Elections 2013 (07-Mar-2013, Code)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Colonization Of Governemnt Lands
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea98 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea9b (1 statutes)
+[21:41:37] INFO:     - Colonization Of Government Lands (Sindh Amendment) Ordinance 2005 (2005-11-08, Amendments)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Commecs Institute Of Business And Emerging Sciences
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693ea9c (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693ea9d (1 statutes)
+[21:41:37] INFO:     - Commecs Institute Of Business And Emerging Sciences Ordinance 2007 (2007-05-30, Ordinance)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Companies Profits
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693eaa8 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693eaa9 (1 statutes)
+[21:41:37] INFO:     - Companies Profits (Workers Participation) Act 1968 (1968-07-04, Act)
+[21:41:37] INFO:   Merged document 2: 6881eba4ea729c03d693eaaa (1 statutes)
+[21:41:37] INFO:     - Companies Profits (Workers Participation) Rules 1971 (20-Aug-1971, Rule)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Competition
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693eaac (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693eab0 (1 statutes)
+[21:41:37] INFO:     - Competition Ordinance 2009 (02-Oct-2009, Ordinance)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Competition Commission
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693eaad (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693eaae (1 statutes)
+[21:41:37] INFO:     - Competition Commission (General Enforcement) Regulations 2007 (20-Nov-2007, Regulation)
+[21:41:37] INFO:   Merged document 2: 6881eba4ea729c03d693eaaf (1 statutes)
+[21:41:37] INFO:     - Competition Commission Enquiry (Conduct Of Investigating Officers) Rules 2007 (2007-04-24, Rule)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Compulsory Service In The Armed Forces
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693eab3 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693eab4 (1 statutes)
+[21:41:37] INFO:     - Compulsory Service In The Armed Forces Ordinance 1971 (03-Dec-1971, Ordinance)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Conciliation Courts
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693eab7 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693eab8 (1 statutes)
+[21:41:37] INFO:     - Conciliation Courts Rules 1962 (01-Jan-1962, Rule)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Constitutioin
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693eabb (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693eabd (1 statutes)
+[21:41:37] INFO:     - Constitution (Third Amendment) Act 1965 (1965-06-16, Amendments)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Constitution Of Islamic Republic Of Pakistan
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693eabe (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eac5 (1 statutes)
+[21:41:37] INFO:     - Constitution Of The Islamic Republic Of Pakistan 1973 (2010-11-05, Constitution)
+[21:41:37] INFO:   Merged document 2: 6881eba5ea729c03d693eac6 (1 statutes)
+[21:41:37] INFO:     - Constitution Of The Islamic Republic Of Pakistan Art 247 (2011-06-06, Constitution)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Constitution Of Kuwait
+[21:41:37] INFO:   First document: 6881eba4ea729c03d693eabf (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba4ea729c03d693eac1 (1 statutes)
+[21:41:37] INFO:     - Constitution Of Pakistan 1973 (12-Apr-1973, Constitution)
+[21:41:37] INFO:   Merged document 2: 6881eba4ea729c03d693eac3 (1 statutes)
+[21:41:37] INFO:     - Constitution Of Russina 1993 (1978-04-12, Constitution)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Contempt Of Court
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eaca (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eacb (2 statutes)
+[21:41:37] INFO:     - Contempt Of Court Act 2012 (12-Jul-2012, Act)
+[21:41:37] INFO:     - Contempt Of Court Act 2012 (Declared By Supreme Court Of Pakistan Null And Void) (2012-07-11, Act)
+[21:41:37] INFO:   Merged document 2: 6881eba5ea729c03d693eacc (1 statutes)
+[21:41:37] INFO:     - Contempt Of Court Ordinance 2004 (15-Jul-2004, Ordinance)
+[21:41:37] INFO:   Merged document 3: 6881eba5ea729c03d693eace (1 statutes)
+[21:41:37] INFO:     - Contempts Of Court Ordinance (V. Of) 2003 (2003-12-15, Ordinance)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Control Of Employment
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693ead3 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693ead4 (1 statutes)
+[21:41:37] INFO:     - Control Of Employment Ordinance 1965 (18-Sep-1965, Ordinance)
+[21:41:37] INFO:   Merged document 2: 6881eba5ea729c03d693ead5 (1 statutes)
+[21:41:37] INFO:     - Control Of Employment Rules 1965 (1965-09-19, Rule)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Control Of Narcotic Substances
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693ead6 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693ead7 (1 statutes)
+[21:41:37] INFO:     - Control Of Narcotic Substances (Government Analysts) Rules 2001 (28-Nov-2001, Rule)
+[21:41:37] INFO:   Merged document 2: 6881eba5ea729c03d693ead8 (1 statutes)
+[21:41:37] INFO:     - Control Of Narcotic Substances Act 1997 (01-Dec-1997, Act)
+[21:41:37] INFO:   Merged document 3: 6881eba5ea729c03d693ead9 (1 statutes)
+[21:41:37] INFO:     - Control Of Narcotic Substances Ordinance 1997 (1997-03-02, Ordinance)
+[21:41:37] INFO:   Merged document 4: 6881eba5ea729c03d693eada (1 statutes)
+[21:41:37] INFO:     - Control Of Narotic Substance Act 1997 (1997-07-07, Act)
+[21:41:37] INFO:   Merged document 5: 6881eba5ea729c03d693eadb (1 statutes)
+[21:41:37] INFO:     - Control Of Norcotic Substances Act 1997 (1997-07-07, Act)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Copyright
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eae2 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eae3 (1 statutes)
+[21:41:37] INFO:     - Copyright Ordinance 1962 (02-Jun-1962, Ordinance)
+[21:41:37] INFO:   Merged document 2: 6881eba5ea729c03d693eae4 (1 statutes)
+[21:41:37] INFO:     - Copyright Rules 1967 (01-Jan-1967, Rule)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Corporate And Industrial Restructuring Corporation
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eae5 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eae6 (1 statutes)
+[21:41:37] INFO:     - Corporate And Industrial Restructuring Corporation (Amendment) Ordianace 2000 (2000-11-17, Amendments)
+[21:41:37] INFO:   Merged document 2: 6881eba5ea729c03d693eae7 (1 statutes)
+[21:41:37] INFO:     - Corporate And Industrial Restructuring Corporation Ordinance 2000 (22-Sep-2000, Ordinance)
+[21:41:37] INFO:   Merged document 3: 6881eba5ea729c03d693eaed (1 statutes)
+[21:41:37] INFO:     - Corporte Industrial Restructuring Corporation Ordinance 2000 (2000-09-22, Ordinance)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Corporate Restructuring Companies
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eae9 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eaea (1 statutes)
+[21:41:37] INFO:     - Corporate Restructuring Companies Act 2016 (29-Jun-2016, Act)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Cotton Ginning Control And Development
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eaf2 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eaf3 (1 statutes)
+[21:41:37] INFO:     - Cotton Ginning Control And Development Act 1976 (04-Sep-1976, Act)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Court Fees
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eafc (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eafd (1 statutes)
+[21:41:37] INFO:     - Court-Fees (Punjab Amendment) Act 1951 (19-Jan-1952, Amendments)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Covid-19
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eaff (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eb00 (1 statutes)
+[21:41:37] INFO:     - Covid-19 (Prevention Of Smuggling) Ordinance 2020 (2020-04-27, Ordinance)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Criminal
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eb09 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eb0a (1 statutes)
+[21:41:37] INFO:     - Criminal Law (Special Provisions) Rules 1968 (1970-04-15, Rule)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Criminal Reforms
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eb0b (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eb0c (1 statutes)
+[21:41:37] INFO:     - Criminal Laws Reform Ordinance 2002 (25-Oct-2002, Ordinance)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Custom
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eb0e (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eb10 (1 statutes)
+[21:41:37] INFO:     - Customs (Third Amendment) Ordinance 2002 (2002-06-07, Amendments)
+[21:41:37] INFO:   Merged document 2: 6881eba5ea729c03d693eb12 (1 statutes)
+[21:41:37] INFO:     - Customs Act 1969 (03-Mar-1969, Act)
+[21:41:37] INFO:   Merged document 3: 6881eba5ea729c03d693eb13 (2 statutes)
+[21:41:37] INFO:     - Customs Act 1969 (Application To The Federally Administered Tribal Areas) Regulation 1984 (1984-01-07, Regulation)
+[21:41:37] INFO:     - Customs Act 1969 (Application To The Federally Administrated Tribal Areas) Regulation 1984 (1984-01-07, Regulation)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Dadabhoy Institute Of Higher Education
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eb17 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eb18 (1 statutes)
+[21:41:37] INFO:     - Dadabhoy Institute Of Higher Education Ordinance 2003 (23-Aug-2003, Ordinance)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Dangerous Cargoes
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eb19 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eb1a (1 statutes)
+[21:41:37] INFO:     - Dangerous Drugs (Amendment) Ordinance 1983 (1983-12-26, Amendments)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Decorations
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eb22 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eb23 (1 statutes)
+[21:41:37] INFO:     - Decorations Act 1965 (1965-08-03, Act)
+[21:41:37] INFO: 
+[21:41:37] INFO: GROUP: Defence Housing Authority Islamabad
+[21:41:37] INFO:   First document: 6881eba5ea729c03d693eb26 (1 statutes)
+[21:41:37] INFO:   Merged document 1: 6881eba5ea729c03d693eb27 (1 statutes)
+[21:41:38] INFO:     - Defence Housing Authority Islamabad Ordinance 2010 (2010-03-26, Ordinance)
+[21:41:38] INFO:   Merged document 2: 6881eba5ea729c03d693eb2a (1 statutes)
+[21:41:38] INFO:     - Defence Housing Authority Ordinance 1999 (2008-06-25, Ordinance)
+[21:41:38] INFO: 
+[21:41:38] INFO: GROUP: Defence Housing Authority Lahore Order
+[21:41:38] INFO:   First document: 6881eba5ea729c03d693eb28 (1 statutes)
+[21:41:38] INFO:   Merged document 1: 6881eba5ea729c03d693eb29 (1 statutes)
+[21:41:38] INFO:     - Defence Housing Authority Lahore Ordinance 1999 (1999-09-29, Ordinance)
+[21:41:38] INFO: 
+[21:41:38] INFO: GROUP: Defence Housing Authority Peshawar
+[21:41:38] INFO:   First document: 6881eba5ea729c03d693eb2b (1 statutes)
+[21:41:38] INFO:   Merged document 1: 6881eba5ea729c03d693eb2c (1 statutes)
+[21:41:38] INFO:     - Defence Housing Authority Peshawar Act 2009 (24-Apr-2009, Act)
+[21:41:38] INFO:   Merged document 2: 6881eba5ea729c03d693eb2d (1 statutes)
+[21:41:38] INFO:     - Defence Housing Authority Peshawar Ordinance 2008 (2008-03-14, Ordinance)
+[21:41:38] INFO: 
+[21:41:38] INFO: ============================================================
+[21:41:38] INFO: ============================================================
+[21:41:38] INFO: VERSIONING PROCESS SUMMARY
+[21:41:38] INFO: ============================================================
+[21:41:38] INFO: Total groups processed: 226
+[21:41:38] INFO: Total statutes versioned: 371
+[21:41:38] INFO: Groups with single version: 149
+[21:41:38] INFO: Groups with multiple versions: 77
+[21:41:38] INFO: Max versions in group: 13
+[21:41:38] INFO: Average versions per group: 1.64
+[21:41:38] INFO: ============================================================
+[21:41:38] INFO: ================================================================================
+[21:41:38] INFO: COMPREHENSIVE PROCESSING, MERGING, AND VERSIONING REPORT
+[21:41:38] INFO: ================================================================================
+[21:41:38] INFO: 📊 SOURCE COLLECTION DETAILS:
+[21:41:38] INFO:    Collection: batch2
+[21:41:38] INFO:    Total groups: 227
+[21:41:38] INFO:    Total statutes: 409
+[21:41:38] INFO:    Groups with statutes: 403
+[21:41:38] INFO:    Groups without statutes: 1
+[21:41:38] INFO:    Documents processed: 404
+[21:41:38] INFO:    Documents merged: 145
+[21:41:38] INFO: 
+[21:41:38] INFO: 📊 TARGET COLLECTION DETAILS:
+[21:41:38] INFO:    Total groups processed: 226
+[21:41:38] INFO:    Total statutes versioned: 371
+[21:41:38] INFO:    Groups created: 0
+[21:41:38] INFO: 
+[21:41:38] INFO: 📊 VERSIONING STATISTICS:
+[21:41:38] INFO:    Groups with single version: 149
+[21:41:38] INFO:    Groups with multiple versions: 77
+[21:41:38] INFO:    Max versions in a group: 13
+[21:41:38] INFO:    Average versions per group: 1.64
+[21:41:38] INFO:    Total versions created: 371
+[21:41:38] INFO: 
+[21:41:38] INFO: 📊 PROCESSING DETAILS:
+[21:41:38] INFO:    Statutes with valid dates: 0
+[21:41:38] INFO:    Statutes with invalid dates: 0
+[21:41:38] INFO:    Statutes with missing dates: 0
+[21:41:38] INFO:    Date parsing errors: 0
+[21:41:38] ERROR: Error logging comprehensive details: 'database_updates'
+[21:41:53] INFO: Loading collections for comparison...
+[21:41:53] INFO: Using pending versioned data for comparison
+[21:41:53] INFO: Loaded 302 source groups and 226 target groups
+[21:44:49] INFO: Loading collections for comparison...
+[21:44:49] INFO: Using pending versioned data for comparison
+[21:44:49] INFO: Loaded 302 source groups and 226 target groups
+[21:44:50] INFO: Comparing collections...
+[21:44:50] ERROR: Error storing group details for 'Banking Companies': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Banking Companies Peshawar High Court': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Banking Tribunals': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Banks': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Baqai Medical University': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Barret Hodgson International University At Karachi': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Basel Convention On The Control Of Transboundary Movements Of Hazardous Wastes And Their Disposal': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Basic Democracies': 'group_details'
+[21:44:50] WARNING: Count difference detected: Group 'Basic Democracies' - Source: 1 statutes, Target: 2 versions
+[21:44:50] ERROR: Error storing group details for 'Basic Democracies Order': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Benami Transactions': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Benazir Bhutto Shaheed Human Resource Research And Development Board': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Benazir Bhutto Shaheed University At Layari Karachi': 'group_details'
+[21:44:50] WARNING: Count difference detected: Group 'Benazir Bhutto Shaheed University At Layari Karachi' - Source: 1 statutes, Target: 2 versions
+[21:44:50] ERROR: Error storing group details for 'Benazir Bhutto Shaheed University At Lyari Karachi': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Benazir Income Support Programme': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Bilawal Institute Of Historical Research': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Blood Transfusion Safety Authority .': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Board Of Directors Of The Federal Bank For Co-Operatives Of Co-Operative Banking': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Board Of District Elementary Education Of Azad Jammu And Kashmir': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Board Of Investment': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Board Of Investment And Trade': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Board Of Technical Education': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Boards Of Intermediate And Secondary Education .': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Boilers': 'group_details'
+[21:44:50] WARNING: Count difference detected: Group 'Boilers' - Source: 3 statutes, Target: 1 versions
+[21:44:50] ERROR: Error storing group details for 'Boilers And Pressure Vessels .': 'group_details'
+[21:44:50] ERROR: Error storing group details for 'Bolan Abadies For Non-Proprietors In Rural Areas': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Bolan Medical College': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Bolan University Of Medical And Health Sciences': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Bonded Labour System': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Borstal Institution': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Brains Institute .': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Brokers And Agents Registration': 'group_details'
+[21:44:51] WARNING: Count difference detected: Group 'Brokers And Agents Registration' - Source: 1 statutes, Target: 2 versions
+[21:44:51] ERROR: Error storing group details for 'Brokers And Agents Registration Ii Of': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Bus Stand And Traffic Control': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Business Profits': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'C. M. L. A. Order 1 Of Order': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Canal And Drainage': 'group_details'
+[21:44:51] WARNING: Count difference detected: Group 'Canal And Drainage' - Source: 4 statutes, Target: 1 versions
+[21:44:51] ERROR: Error storing group details for 'Cancellation Of Bogus Entries Of Government Land': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Cantonment': 'group_details'
+[21:44:51] WARNING: Count difference detected: Group 'Cantonment' - Source: 1 statutes, Target: 3 versions
+[21:44:51] ERROR: Error storing group details for 'Cantonment Areas Union Account': 'group_details'
+[21:44:51] WARNING: Count difference detected: Group 'Cantonment Areas Union Account' - Source: 1 statutes, Target: 2 versions
+[21:44:51] ERROR: Error storing group details for 'Cantonment Areas Union Committees': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Cantonment Boards Budget': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Cantonment Property': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Cantonment Rent Restriction': 'group_details'
+[21:44:51] WARNING: Count difference detected: Group 'Cantonment Rent Restriction' - Source: 1 statutes, Target: 2 versions
+[21:44:51] ERROR: Error storing group details for 'Cantonments': 'group_details'
+[21:44:51] WARNING: Count difference detected: Group 'Cantonments' - Source: 4 statutes, Target: 2 versions
+[21:44:51] ERROR: Error storing group details for 'Cantonments Local Government': 'group_details'
+[21:44:51] WARNING: Count difference detected: Group 'Cantonments Local Government' - Source: 2 statutes, Target: 3 versions
+[21:44:51] ERROR: Error storing group details for 'Cantonments Local Government Elections': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Cantonments Order': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Cantonments Pure Food': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Cantonments Rent Restriction': 'group_details'
+[21:44:51] ERROR: Error storing group details for 'Capital Development Authority': 'group_details'
+[21:44:51] WARNING: Count difference detected: Group 'Capital Development Authority' - Source: 3 statutes, Target: 5 versions
+[21:44:51] ERROR: Error storing group details for 'Capital Development Authority Special Court': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Capital Issues': 'group_details'
+[21:44:52] WARNING: Count difference detected: Group 'Capital Issues' - Source: 3 statutes, Target: 4 versions
+[21:44:52] ERROR: Error storing group details for 'Capital Issues Order': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Capital Territory Local Government': 'group_details'
+[21:44:52] WARNING: Count difference detected: Group 'Capital Territory Local Government' - Source: 2 statutes, Target: 3 versions
+[21:44:52] ERROR: Error storing group details for 'Capital Territory Union Councils': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Capital Value Tax': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Captial Of The Republic': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Captial Territory Local Government': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Career Structure For Health Personnel Scheme': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Carriage By Air': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Cattle Trespass': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Cecos University Information Technology And Emerging Sciences': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Cecos University Of Information Technology And Emerging Sciences': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Censorship Of Films': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Census': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Central Board Of Revenue': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Central Depositories': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Central Employees Benevolent Fund And Group Insurance': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Central Excise Duty On Sugar': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Central Excises': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Central Excises And Salt': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Central Government Lands And Buildings': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Central Officer': 'group_details'
+[21:44:52] WARNING: Count difference detected: Group 'Central Officer' - Source: 1 statutes, Target: 3 versions
+[21:44:52] ERROR: Error storing group details for 'Central Officers': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Central Zakat Council': 'group_details'
+[21:44:52] ERROR: Error storing group details for 'Centres': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Centres Of Excellence Employees': 'group_details'
+[21:44:53] WARNING: Count difference detected: Group 'Centres Of Excellence Employees' - Source: 1 statutes, Target: 2 versions
+[21:44:53] ERROR: Error storing group details for 'Centres Of Excellency': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Cessation Of Payment Of Arrears On Advance Increments On Higher Educational Qualification': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chairman And Members Of Federal Land Commission': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chairman And Speaker': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chairman And Speaker (Salaries Allowance And Privileges': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chairman And Speaker Ordinance2002': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Charitable And Religious Trusts': 'group_details'
+[21:44:53] WARNING: Count difference detected: Group 'Charitable And Religious Trusts' - Source: 3 statutes, Target: 1 versions
+[21:44:53] ERROR: Error storing group details for 'Charitable Endowments': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Charitable Funds': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Charter Of The United Nations And Of The International Court Of Justice': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chartered Accountants': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chashma Right Bank Canal Project': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chemical Fertilizer Industry Order': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chemical Fertilizers': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chemical Weapons Convention Implementation': 'group_details'
+[21:44:53] WARNING: Count difference detected: Group 'Chemical Weapons Convention Implementation' - Source: 1 statutes, Target: 2 versions
+[21:44:53] ERROR: Error storing group details for 'Chemical Weapons Convention Implemention': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chief Election Commissioner': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chief Executive Order 1 Ad Hoc Public Accounts Committee Order': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chief Executive Order 1 Election Commission Order': 'group_details'
+[21:44:53] WARNING: Count difference detected: Group 'Chief Executive Order 1 Election Commission Order' - Source: 1 statutes, Target: 2 versions
+[21:44:53] ERROR: Error storing group details for 'Chief Executive Order 1 Oath Of Office Order': 'group_details'
+[21:44:53] ERROR: Error storing group details for 'Chief Executive Order 10 National Kashmir Committee Order': 'group_details'
+[21:44:54] WARNING: Count difference detected: Group 'Chief Executive Order 10 National Kashmir Committee Order' - Source: 1 statutes, Target: 2 versions
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 10 Provisional Constitution Order': 'group_details'
+[21:44:54] WARNING: Count difference detected: Group 'Chief Executive Order 10 Provisional Constitution Order' - Source: 1 statutes, Target: 2 versions
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 11 Aga Khan University Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 11 Governors Powers Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 12 Referendum Order': 'group_details'
+[21:44:54] WARNING: Count difference detected: Group 'Chief Executive Order 12 Referendum Order' - Source: 1 statutes, Target: 2 versions
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 13 Referendum Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 14Conduct Of General Elections Order': 'group_details'
+[21:44:54] WARNING: Count difference detected: Group 'Chief Executive Order 14Conduct Of General Elections Order' - Source: 1 statutes, Target: 11 versions
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 15 Conduct Of Elections Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 16Appointment Of Federal Ministers And Oath Of Office Order': 'group_details'
+[21:44:54] WARNING: Count difference detected: Group 'Chief Executive Order 16Appointment Of Federal Ministers And Oath Of Office Order' - Source: 1 statutes, Target: 4 versions
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 17Conduct Of General Elections Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 18 Political Parties Order': 'group_details'
+[21:44:54] WARNING: Count difference detected: Group 'Chief Executive Order 18 Political Parties Order' - Source: 1 statutes, Target: 5 versions
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 19 Qualification To Hold Public Order': 'group_details'
+[21:44:54] WARNING: Count difference detected: Group 'Chief Executive Order 19 Qualification To Hold Public Order' - Source: 1 statutes, Target: 2 versions
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 2 National Kashmir Committee Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 2 Proclamation Of Emergency Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 2 Supreme Court Judges Order': 'group_details'
+[21:44:54] WARNING: Count difference detected: Group 'Chief Executive Order 2 Supreme Court Judges Order' - Source: 1 statutes, Target: 3 versions
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 20 Political Parties Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 21 Conduct Of General Elections Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 22 Police Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 23 Conduct Of General Elections Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 24 Legal Framework Order': 'group_details'
+[21:44:54] WARNING: Count difference detected: Group 'Chief Executive Order 24 Legal Framework Order' - Source: 1 statutes, Target: 5 versions
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 25 Election Of Members Of Senate From The Federally Administered Tribal Areas Order': 'group_details'
+[21:44:54] WARNING: Count difference detected: Group 'Chief Executive Order 25 Election Of Members Of Senate From The Federally Administered Tribal Areas Order' - Source: 1 statutes, Target: 2 versions
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 26 Defence Housing Authority Lahore Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 27 Of Procedure And Conduct Of Business In The National Assembly Order': 'group_details'
+[21:44:54] ERROR: Error storing group details for 'Chief Executive Order 28 Political Parties Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 29 Legal Framework Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 3 Holders Of Representative Offices Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 3 Presidents Succession Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 30 Conduct Of General Elections Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 31 Conduct Of General Elections Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 32 Legal Framework Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 33 Qualification To Hold Public Offices Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 34 Conduct Of General Elections Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 35 Conduct Of General Elections Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 37 Legal Frame Work Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 38 Conduct Of General Elections Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 39 Election Of Members Of Senate From The Federally Administered Tribal Areas Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 3Governors Appointment And Oath Of Office Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 4 Appointment Of Federal Ministers And Oath Of Office Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 4 Appointment Of Provincial Ministers And Oath Of Office Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 4 Supreme Court Judges Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 41 Legal Frame Work Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 5 Appointment Of Provincial Ministers Oath Of Office Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 5 High Court Judges Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 6 Budgetary Provisions Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 6 National Security Council Order Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 7 Conduct Of General Elections Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 7 Police Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 7 Provisional Constitution Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 9 Local Government Elections Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Executive Order 9 Term Of Chief Election Commissioner Order': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Martial Administrator No. 43': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Martial Administrator No. 44': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Martial Administrator No. 47': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Martial Administrator No. 48': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Martial Administrator No. 49': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Martial Administrator Order No. 65': 'group_details'
+[21:44:55] WARNING: Count difference detected: Group 'Chief Martial Administrator Order No. 65' - Source: 1 statutes, Target: 13 versions
+[21:44:55] ERROR: Error storing group details for 'Chief Martial Administrator Order No. 66': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Martial Administrator Order No. 68': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Martial Administrator Order No. 69': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Martial Administrator Order No. 70': 'group_details'
+[21:44:55] ERROR: Error storing group details for 'Chief Martial Administrator Order No. 71': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Chief Martial Administrator Order No. 72': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Chief Martial Administrator Order No. 73': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Chief Minister Election': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Child Marriage Restraint': 'group_details'
+[21:44:56] WARNING: Count difference detected: Group 'Child Marriage Restraint' - Source: 1 statutes, Target: 2 versions
+[21:44:56] ERROR: Error storing group details for 'Child Marriages Restraint': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Children Infectious Diseases Hospital .': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'China Pakistan Economic Corridor Authority': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Cholistan Development Authority': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Cigarette': 'group_details'
+[21:44:56] WARNING: Count difference detected: Group 'Cigarette' - Source: 1 statutes, Target: 4 versions
+[21:44:56] ERROR: Error storing group details for 'Cigarettes': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'City University': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'City University Of Science And Information Technology .': 'group_details'
+[21:44:56] WARNING: Count difference detected: Group 'City University Of Science And Information Technology .' - Source: 1 statutes, Target: 2 versions
+[21:44:56] ERROR: Error storing group details for 'City University Of Science And Information Technology Peshawar': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Civil': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Civil Aviation': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Civil Commotion Compensation Fund': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Civil Courts': 'group_details'
+[21:44:56] WARNING: Count difference detected: Group 'Civil Courts' - Source: 2 statutes, Target: 1 versions
+[21:44:56] ERROR: Error storing group details for 'Civil Defence': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Civil Pioneer Force': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Civil Procedure': 'group_details'
+[21:44:56] WARNING: Count difference detected: Group 'Civil Procedure' - Source: 1 statutes, Target: 3 versions
+[21:44:56] ERROR: Error storing group details for 'Civil Servants': 'group_details'
+[21:44:56] WARNING: Count difference detected: Group 'Civil Servants' - Source: 4 statutes, Target: 1 versions
+[21:44:56] ERROR: Error storing group details for 'Civil Servants Retirement Benefits And Death Compensation': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Civil Services': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Claims For Maintenance': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Co-Operative Farming': 'group_details'
+[21:44:56] ERROR: Error storing group details for 'Co-Operative Societies': 'group_details'
+[21:44:56] WARNING: Count difference detected: Group 'Co-Operative Societies' - Source: 6 statutes, Target: 1 versions
+[21:44:56] ERROR: Error storing group details for 'Co-Operative Societies .': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Co-Operative Societies Order': 'group_details'
+[21:44:57] WARNING: Count difference detected: Group 'Co-Operative Societies Order' - Source: 1 statutes, Target: 3 versions
+[21:44:57] ERROR: Error storing group details for 'Coal Mines': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Coastal Development Authority': 'group_details'
+[21:44:57] WARNING: Count difference detected: Group 'Coastal Development Authority' - Source: 3 statutes, Target: 2 versions
+[21:44:57] ERROR: Error storing group details for 'Collection Of Tobacco Cess': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Colonization Of Governemnt Lands': 'group_details'
+[21:44:57] WARNING: Count difference detected: Group 'Colonization Of Governemnt Lands' - Source: 1 statutes, Target: 2 versions
+[21:44:57] ERROR: Error storing group details for 'Colonization Of Government Lands': 'group_details'
+[21:44:57] WARNING: Count difference detected: Group 'Colonization Of Government Lands' - Source: 3 statutes, Target: 1 versions
+[21:44:57] ERROR: Error storing group details for 'Commecs Institute Of Business And Emerging Sciences': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Commercial Documents Evidence': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Common Board Warehouse': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Companies': 'group_details'
+[21:44:57] WARNING: Count difference detected: Group 'Companies' - Source: 8 statutes, Target: 1 versions
+[21:44:57] ERROR: Error storing group details for 'Companies Ii Of': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Companies Profits': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Companies Share Capital': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Competition': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Competition Commission': 'group_details'
+[21:44:57] WARNING: Count difference detected: Group 'Competition Commission' - Source: 2 statutes, Target: 3 versions
+[21:44:57] ERROR: Error storing group details for 'Competition Commission Enquiry': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Compressed Natural Gas': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Compulsory Service': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Compulsory Service In The Armed Forces': 'group_details'
+[21:44:57] ERROR: Error storing group details for 'Comsats Institute Of Information Technology': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Comsats University Islamabad': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Conciliation Courts': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Conduct Of Examinations Eradication Of Malpractices .': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Conduct Of General Elections Order': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Constitutioin': 'group_details'
+[21:44:58] WARNING: Count difference detected: Group 'Constitutioin' - Source: 1 statutes, Target: 2 versions
+[21:44:58] ERROR: Error storing group details for 'Constitution': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Constitution Of Islamic Republic Of Pakistan': 'group_details'
+[21:44:58] WARNING: Count difference detected: Group 'Constitution Of Islamic Republic Of Pakistan' - Source: 1 statutes, Target: 3 versions
+[21:44:58] ERROR: Error storing group details for 'Constitution Of Kuwait': 'group_details'
+[21:44:58] WARNING: Count difference detected: Group 'Constitution Of Kuwait' - Source: 1 statutes, Target: 3 versions
+[21:44:58] ERROR: Error storing group details for 'Constitution Of Local Councils': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Constitution Of Pakistan': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Constitution Of Pakistan Cricket Board': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Constitution Of Russina': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Constitution Of Saudi Arabia': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Constitution Of The Islamic Republic Of Pakistan': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Constitution Of The Islamic Republic Of Pakistan Art 247': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Constitution Order': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Consular Access With Foreign Prisoners': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Consumer Protection': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Consumers Protection': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Contempt Of Court': 'group_details'
+[21:44:58] WARNING: Count difference detected: Group 'Contempt Of Court' - Source: 4 statutes, Target: 5 versions
+[21:44:58] ERROR: Error storing group details for 'Contempt Of The Commission': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Contempts Of Court': 'group_details'
+[21:44:58] ERROR: Error storing group details for 'Contesting Candidates For General Elections': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Continuance Of Legal Proceedings': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Contract Appointment Policy': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Control Of Employment': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Control Of Narcotic Substances': 'group_details'
+[21:44:59] WARNING: Count difference detected: Group 'Control Of Narcotic Substances' - Source: 4 statutes, Target: 6 versions
+[21:44:59] ERROR: Error storing group details for 'Control Of Narotic Substance': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Control Of Norcotic Substances': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Control Of Property Order': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Control Of Sticking': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Controller General Of Accounts': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Convention For The Protection Of The Wrold Cultural And Natural Heritage': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Convention On The Conservation Of Migratory Species Of Wild Animals': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Cooperative Societies': 'group_details'
+[21:44:59] WARNING: Count difference detected: Group 'Cooperative Societies' - Source: 2 statutes, Target: 1 versions
+[21:44:59] ERROR: Error storing group details for 'Copyright': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Corporate And Industrial Restructuring Corporation': 'group_details'
+[21:44:59] WARNING: Count difference detected: Group 'Corporate And Industrial Restructuring Corporation' - Source: 2 statutes, Target: 4 versions
+[21:44:59] ERROR: Error storing group details for 'Corporate And Industrial Restructuring Corporation Ordianace': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Corporate Rehabilitation': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Corporate Restructuring Companies': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Corporate Social Responsibility Guidelines': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Corporation Employees': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Corporte Industrial Restructuring Corporation': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Cost And Industrial Accountants': 'group_details'
+[21:44:59] ERROR: Error storing group details for 'Cost And Management Accountants': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Costs Of Litigation': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Cotton': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Cotton Ginning Control And Development': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Cotton Ginning Establishment': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Cotton Industry': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Cotton Standardization': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Countervailing Duties': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Counting Of Votes Order': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Court Fees': 'group_details'
+[21:45:00] WARNING: Count difference detected: Group 'Court Fees' - Source: 4 statutes, Target: 2 versions
+[21:45:00] ERROR: Error storing group details for 'Court-Fees': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Courts Of Admiralty': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Covid-19': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Creation Of Debt Retirement Fund': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Credit Bureaus': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Credit Rating Companies': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Criminal': 'group_details'
+[21:45:00] WARNING: Count difference detected: Group 'Criminal' - Source: 7 statutes, Target: 2 versions
+[21:45:00] ERROR: Error storing group details for 'Criminal Procedure': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Criminal Reform': 'group_details'
+[21:45:00] ERROR: Error storing group details for 'Criminal Reforms': 'group_details'
+[21:45:01] WARNING: Count difference detected: Group 'Criminal Reforms' - Source: 1 statutes, Target: 2 versions
+[21:45:01] ERROR: Error storing group details for 'Custom': 'group_details'
+[21:45:01] WARNING: Count difference detected: Group 'Custom' - Source: 1 statutes, Target: 5 versions
+[21:45:01] ERROR: Error storing group details for 'Customary - Punjab (': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Customs': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Customs Order': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Customs Valuation': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Cutting Of Trees': 'group_details'
+[21:45:01] WARNING: Count difference detected: Group 'Cutting Of Trees' - Source: 2 statutes, Target: 1 versions
+[21:45:01] ERROR: Error storing group details for 'Dadabhoy Institute Of Higher Education': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Dangerous Cargoes': 'group_details'
+[21:45:01] WARNING: Count difference detected: Group 'Dangerous Cargoes' - Source: 1 statutes, Target: 2 versions
+[21:45:01] ERROR: Error storing group details for 'Dangerous Drugs': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Dar-Ul-Madina International University Islamabad': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Dastoorul-Amal Diwani Kalat': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Data Retention Of Internet Extended To Public Wifi-Hotspots': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Dawood College Of Engineering And Technology Karachi': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Dawood University Of Engineering And Technology': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Dealerships Order': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Debit And Credit Note And Destruction Of Goods': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Decorations': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Defamation': 'group_details'
+[21:45:01] WARNING: Count difference detected: Group 'Defamation' - Source: 2 statutes, Target: 1 versions
+[21:45:01] ERROR: Error storing group details for 'Defence Housing Authority': 'group_details'
+[21:45:01] ERROR: Error storing group details for 'Defence Housing Authority Islamabad': 'group_details'
+[21:45:01] WARNING: Count difference detected: Group 'Defence Housing Authority Islamabad' - Source: 2 statutes, Target: 3 versions
+[21:45:01] ERROR: Error storing group details for 'Defence Housing Authority Lahore': 'group_details'
+[21:45:02] ERROR: Error storing group details for 'Defence Housing Authority Lahore Order': 'group_details'
+[21:45:02] WARNING: Count difference detected: Group 'Defence Housing Authority Lahore Order' - Source: 1 statutes, Target: 2 versions
+[21:45:02] ERROR: Error storing group details for 'Defence Housing Authority Peshawar': 'group_details'
+[21:45:02] ERROR: Error storing group details for 'Defence Housing Authority Suffa University': 'group_details'
+[21:45:02] ERROR: Error storing group details for 'Of Civil Procedure': 'group_details'
+[21:45:02] WARNING: Count difference detected: Group 'Of Civil Procedure' - Source: 5 statutes, Target: 2 versions
+[21:45:02] ERROR: Error storing group details for 'Of Conduct For Observers For The General Elections': 'group_details'
+[21:45:02] WARNING: Count difference detected: Group 'Of Conduct For Observers For The General Elections' - Source: 1 statutes, Target: 3 versions
+[21:45:02] ERROR: Error storing group details for 'Of Conduct For Political Parties And Contesting Candidates For The Forthcoming General Elections Issued By The Election Commission': 'group_details'
+[21:45:02] ERROR: Error storing group details for 'Of Conduct For Polling Personnel For The General Elections': 'group_details'
+[21:45:02] ERROR: Error storing group details for 'Of Conduct For Security Personnel For The General Elections': 'group_details'
+[21:45:02] ERROR: Error storing group details for 'Of Conduct To Be Observed By Judicial Officers Issued By Islamabad High Court': 'group_details'
+[21:45:02] ERROR: Error storing group details for 'Of Criminal Procedure': 'group_details'
+[21:45:02] WARNING: Count difference detected: Group 'Of Criminal Procedure' - Source: 5 statutes, Target: 1 versions
+[21:45:02] ERROR: Error storing group details for 'Of Ethics Of Practice For Medical And Dental Practitioners': 'group_details'
+[21:45:02] ERROR: Error storing group details for 'The Banking Companies': 'group_details'
+[21:45:02] INFO: Comparison complete: 302 groups analyzed
+

@@ -1,0 +1,76 @@
+{
+  "operation_type": "pakistan_law_validation",
+  "total_statutes_processed": 680,
+  "validation_results": {
+    "total_dropped": 24,
+    "total_kept": 656,
+    "drop_rate": 3.5294117647058822,
+    "keep_rate": 96.47058823529412
+  },
+  "drop_reason_analysis": {
+    "reason_distribution": {
+      "Unknown reason": 8,
+      "Pre-1947": 13,
+      "Foreign statute": 3
+    },
+    "top_drop_reasons": [
+      [
+        "Pre-1947",
+        13
+      ],
+      [
+        "Unknown reason",
+        8
+      ],
+      [
+        "Foreign statute",
+        3
+      ]
+    ],
+    "reason_percentages": {
+      "Unknown reason": 33.33333333333333,
+      "Pre-1947": 54.166666666666664,
+      "Foreign statute": 12.5
+    }
+  },
+  "batch_distribution": {
+    "batches_processed": 1,
+    "batch_stats": {
+      "batch_1": {
+        "dropped": 24,
+        "kept": 656
+      }
+    },
+    "batch_effectiveness": {
+      "batch_1": {
+        "total": 680,
+        "drop_rate": 3.5294117647058822
+      }
+    }
+  },
+  "processing_details": {
+    "dry_run": false,
+    "target_database": "Batched-Statutes",
+    "target_collection_prefix": "batch_",
+    "batch_numbers": [
+      1
+    ],
+    "validation_method": "rule_based_with_gpt_fallback",
+    "processing_date": "2025-08-15",
+    "processing_timestamp": "2025-08-15T14:54:06.917350"
+  },
+  "validation_methodology": {
+    "rule_based_checks": [
+      "pre_1947_date_check",
+      "foreign_country_keywords",
+      "pakistan_mentions",
+      "pakistani_provinces",
+      "gazette_of_pakistan"
+    ],
+    "gpt_fallback": true,
+    "confidence_level": "high"
+  },
+  "script": "api_phase3_pakistan_validation",
+  "db_name": "Batched-Statutes",
+  "collection": "batch_"
+}

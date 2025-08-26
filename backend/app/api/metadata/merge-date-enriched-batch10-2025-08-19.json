@@ -1,0 +1,74 @@
+{
+  "batch": "batch_10",
+  "target_collection": "batch_10",
+  "start_time": "2025-08-19T09:36:33.441865",
+  "end_time": "2025-08-19T09:36:34.117651",
+  "duration_seconds": 0.675786,
+  "total_documents": 631,
+  "processed": 631,
+  "written": 631,
+  "failures": 0,
+  "samples": [
+    {
+      "_id": "689f056c42d7d99cf9e711f0",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T09:36:33.467426",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    },
+    {
+      "_id": "689f056c42d7d99cf9e711f1",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T09:36:33.480395",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    },
+    {
+      "_id": "689f056c42d7d99cf9e711f2",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T09:36:33.481607",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    },
+    {
+      "_id": "689f056c42d7d99cf9e711f4",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T09:36:33.482683",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    },
+    {
+      "_id": "689f056c42d7d99cf9e711f5",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T09:36:33.483822",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    }
+  ],
+  "date_format": "DD-MMM-YYYY"
+}

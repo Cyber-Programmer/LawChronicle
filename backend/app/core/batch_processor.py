@@ -67,7 +67,7 @@ class BatchProcessor:
                 
                 # Process batch with timeout
                 try:
-                    batch_result = await asyncio.wait_for(
+                    await asyncio.wait_for(
                         processor_func(batch_items, batch_num),
                         timeout=self.batch_timeout
                     )

@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard';
 import Phase1 from './pages/Phase1';
 import Phase2 from './pages/Phase2';
 import Phase3 from './pages/Phase3';
+import Phase4 from './pages/Phase4';
+import Phase5 from './pages/Phase5';
 
 // Fallback component that always renders
 function FallbackComponent() {
@@ -56,6 +58,8 @@ function AppRoutes() {
         <Route path="/phase1" element={<Phase1 />} />
         <Route path="/phase2" element={<Phase2 />} />
         <Route path="/phase3" element={<Phase3 />} />
+        <Route path="/phase4" element={<Phase4 />} />
+        <Route path="/phase5" element={<Phase5 />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Layout>

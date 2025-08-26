@@ -8,10 +8,12 @@ import {
   LogOut,
   User,
   FileText,
+  Calendar,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Scissors
+  Scissors,
+  BarChart3
 } from 'lucide-react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -61,6 +63,19 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       href: '/phase3',
       icon: Scissors,
       description: 'Field cleaning and splitting'
+    }
+    ,
+    {
+      name: 'Phase 4',
+      href: '/phase4',
+      icon: Calendar,
+      description: 'Date processing and exports'
+    },
+    {
+      name: 'Phase 5',
+      href: '/phase5',
+      icon: BarChart3,
+      description: 'Statute grouping and versioning'
     }
   ];
 
@@ -162,8 +177,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Main container with sidebar and content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - Fixed height, scrollable */}
-        <div className={`fixed left-0 z-30 bg-white shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+        {/* Sidebar - Fixed on all desktop sizes, full-height and non-scrollable */}
+        <div className={`fixed left-0 z-30 bg-white shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } ${sidebarCollapsed ? 'lg:w-16' : 'lg:w-64'} w-64`} style={{ top: '64px', height: 'calc(100vh - 64px)' }}>
           
@@ -187,8 +202,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </button>
           </div>
 
-          {/* Navigation - Scrollable */}
-          <div className="flex-1 overflow-y-auto">
+          {/* Navigation - Non-scrollable so sidebar content remains fixed while main content scrolls */}
+          <div className="flex-1">
             <nav className="mt-6 px-3 pb-6">
               <div className="space-y-2">
                 {navigation.map((item) => {
@@ -233,8 +248,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
         </div>
 
-        {/* Main content area - Scrollable */}
-        <div className="flex-1 flex flex-col">
+        {/* Main content area - Scrollable; shift right to account for fixed sidebar */}
+        <div className={`flex-1 flex flex-col ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
           <div className="flex-1 overflow-y-auto">
             <main className="p-4 sm:p-6 lg:p-8 min-h-full">
               {children}

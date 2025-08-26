@@ -1,0 +1,20 @@
+# Requirements for Intelligent Preprocessor Module
+
+# Core dependencies
+numpy>=1.21.0
+langdetect>=1.0.9
+
+# Alternative language detection
+fasttext>=0.9.2
+
+# Fuzzy string matching (optional, with fallback)
+rapidfuzz>=2.0.0
+
+# Text processing
+regex>=2021.0.0
+
+# Logging and utilities
+python-dateutil>=2.8.0
+
+# Note: numpy and langdetect are required for core functionality
+# fasttext and rapidfuzz are optional but recommended for better performance

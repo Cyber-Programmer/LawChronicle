@@ -1,16 +1,16 @@
-from fastapi import APIRouter, HTTPException, status, BackgroundTasks
-from typing import Dict, Any, List, Optional, Union
-from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi import APIRouter, HTTPException, status
+from typing import Dict, Any, Optional
 from pydantic import BaseModel
 from ....core.database import get_db
 from ....core.config import settings
+from ....core.services import NormalizationService
+import pymongo
 import tempfile
 import subprocess
 import os
 import json
 import re
 from datetime import datetime, timezone
-from shared.types.common import BaseResponse
 import logging
 
 # Set up logging
@@ -34,6 +34,36 @@ class NormalizationConfig(BaseModel):
     cleaned_collection: str = "normalized_statutes"
     sorted_collection: str = "sorted_statutes"
 
+# New request model for service-based normalization
+class NormalizationRequest(BaseModel):
+    source_db: str
+    target_db: str
+    options: Optional[Dict[str, Any]] = None
+
+# New models for sorting and cleaning operations
+class SortingRules(BaseModel):
+    preamble_first: bool = True
+    numeric_order: bool = True
+    alphabetical_fallback: bool = True
+    custom_sort_order: Optional[Dict[str, int]] = None
+
+class SortingRequest(BaseModel):
+    rules: SortingRules
+    scope: Optional[str] = "all"  # "all", "selected", or specific statute names
+    target_collection: Optional[str] = None
+    database_name: Optional[str] = None
+
+class FieldMapping(BaseModel):
+    source: str
+    target: str
+    enabled: bool = True
+
+class CleaningRequest(BaseModel):
+    mappings: list[FieldMapping]
+    scope: Optional[str] = "all"  # "all", "selected", or specific statute names
+    target_collection: Optional[str] = None
+    database_name: Optional[str] = None
+
 # Default MongoDB connection settings - Updated to use correct collection names
 MONGODB_URI = settings.mongodb_url
 DEFAULT_DATABASE_NAME = settings.mongodb_db
@@ -42,43 +72,7 @@ DEFAULT_TARGET_COLLECTION = "normalized_statutes"  # Output collection
 DEFAULT_CLEANED_COLLECTION = "normalized_statutes"  # Intermediate collection
 DEFAULT_SORTED_COLLECTION = "sorted_statutes"  # Final collection
 
-# Field name constants to ensure consistency and avoid case sensitivity issues
-FIELD_NAMES = {
-    # Source document fields (as they appear in raw data)
-    "STATUTE_NAME": "Statute_Name",
-    "ACT_ORDINANCE": "Act_Ordinance", 
-    "SECTION": "Section",
-    "YEAR": "Year",
-    "DATE": "Date",
-    "STATUTE": "Statute",
-    "STATUTE_HTML": "Statute_HTML",
-    "STATUTE_RAG_CONTENT": "Statute_RAG_Content",
-    
-    # Normalized document fields (standardized lowercase)
-    "statute_name": "statute_name",
-    "act_ordinance": "act_ordinance",
-    "section_number": "section_number", 
-    "section_definition": "section_definition",
-    "year": "year",
-    "date": "date",
-    "statute_content": "statute_content",
-    "statute_html": "statute_html",
-    "statute_rag_content": "statute_rag_content",
-    
-    # Metadata fields
-    "normalized_at": "normalized_at",
-    "normalization_version": "normalization_version",
-    "original_id": "original_id"
-}
 
-# Helper function to get field names safely
-def get_source_field(field_key: str) -> str:
-    """Get the source field name (as it appears in raw data)"""
-    return FIELD_NAMES.get(field_key, field_key)
-
-def get_normalized_field(field_key: str) -> str:
-    """Get the normalized field name (standardized format)"""
-    return FIELD_NAMES.get(field_key, field_key)
 
 def get_collection_names(config: NormalizationConfig) -> Dict[str, str]:
     """Get collection names from config or defaults"""
@@ -90,156 +84,176 @@ def get_collection_names(config: NormalizationConfig) -> Dict[str, str]:
         "database": config.database_name or DEFAULT_DATABASE_NAME
     }
 
-async def detect_actual_field_names(db, collection_name: str = None, config: NormalizationConfig = None) -> Dict[str, str]:
-    """
-    Dynamically detect actual field names from the database to handle case sensitivity issues.
-    This function analyzes the actual data structure and maps expected fields to actual fields.
-    """
-    try:
-        if collection_name is None:
-            if config:
-                collection_name = config.source_collection or DEFAULT_SOURCE_COLLECTION
-            else:
-                collection_name = DEFAULT_SOURCE_COLLECTION
-            
-        # Get a sample document to analyze field names
-        sample_doc = await db[collection_name].find_one()
-        if not sample_doc:
-            logger.warning(f"No documents found in {collection_name} for field detection")
-            return {}
-        
-        actual_fields = list(sample_doc.keys())
-        logger.info(f"Detected {len(actual_fields)} actual fields in {collection_name}: {actual_fields}")
-        
-        # Map expected fields to actual fields (case-insensitive matching)
-        field_mapping = {}
-        for expected_key, expected_field in FIELD_NAMES.items():
-            if expected_key.startswith("STATUTE_NAME") or expected_key.startswith("ACT_ORDINANCE") or expected_key.startswith("SECTION"):
-                # For key fields, try to find case-insensitive matches
-                for actual_field in actual_fields:
-                    if actual_field.lower() == expected_field.lower():
-                        field_mapping[expected_key] = actual_field
-                        logger.info(f"Mapped {expected_key} -> {actual_field}")
-                        break
-                else:
-                    # If no exact match found, log a warning
-                    logger.warning(f"No match found for expected field: {expected_field}")
-                    field_mapping[expected_key] = expected_field  # Keep original as fallback
-        
-        return field_mapping
-        
-    except Exception as e:
-        logger.error(f"Field detection failed: {str(e)}")
-        return {}
+async def _get_db_client():
+    """Return (is_async, db) where is_async True if motor AsyncIOMotorDatabase is used, else False and pymongo Database."""
+    db = get_db()
+    if db is not None:
+        return True, db
+    # fallback to pymongo for test scenarios
+    client = pymongo.MongoClient(settings.mongodb_url)
+    return False, client[settings.mongodb_db]
 
 class NormalizationScriptGenerator:
     """Generates Python scripts for database normalization"""
-    
+
     @staticmethod
     def generate_statute_name_normalizer(config: Dict[str, Any]) -> str:
-        """Generate Python script for statute name normalization"""
-        script = f'''
+        """Generate Python script for statute name normalization using a safe token template."""
+        template = '''
 # -*- coding: utf-8 -*-
 import sys
 import os
-
-# Add the current directory to Python path to find packages
-current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, current_dir)
-
-try:
-    import pymongo
-            print("[SUCCESS] pymongo imported successfully")
-except ImportError as e:
-    print(f"❌ Failed to import pymongo: {{e}}")
-    print(f"Python executable: {{sys.executable}}")
-    print(f"Python path: {{sys.path}}")
-    print(f"Current working directory: {{os.getcwd()}}")
-    sys.exit(1)
-
 import re
 from datetime import datetime
 from typing import Dict, Any
 
-# Configuration - Updated collection names
-MONGO_URI = "{config.get('mongo_uri', MONGODB_URI)}"
-SOURCE_DB = "{config.get('source_db', DEFAULT_DATABASE_NAME)}"
-SOURCE_COLL = "{config.get('source_collection', DEFAULT_SOURCE_COLLECTION)}"
-TARGET_DB = "{config.get('target_db', DEFAULT_DATABASE_NAME)}"
-TARGET_COLL = "{config.get('target_collection', DEFAULT_TARGET_COLLECTION)}"
+try:
+    import pymongo
+    print("[SUCCESS] pymongo imported successfully")
+except ImportError as e:
+    print(f"❌ Failed to import pymongo: {e}")
+    print(f"Python executable: {sys.executable}")
+    print(f"Python path: {sys.path}")
+    print(f"Current working directory: {os.getcwd()}")
+    sys.exit(1)
 
-# Field name constants to ensure consistency and avoid case sensitivity issues
-FIELD_NAMES = {{
-    # Source document fields (as they appear in raw data)
+# Configuration tokens (will be replaced by the generator)
+MONGO_URI = "__MONGO_URI__"
+SOURCE_DB = "__SOURCE_DB__"
+SOURCE_COLL = "__SOURCE_COLL__"
+TARGET_DB = "__TARGET_DB__"
+TARGET_COLL = "__TARGET_COLL__"
+
+FIELD_NAMES = {
     "STATUTE_NAME": "Statute_Name",
-    "ACT_ORDINANCE": "Act_Ordinance", 
+    "ACT_ORDINANCE": "Act_Ordinance",
     "SECTION": "Section",
     "YEAR": "Year",
     "DATE": "Date",
     "STATUTE": "Statute",
     "STATUTE_HTML": "Statute_HTML",
     "STATUTE_RAG_CONTENT": "Statute_RAG_Content",
-    
-    # Normalized document fields (standardized lowercase)
     "statute_name": "statute_name",
     "act_ordinance": "act_ordinance",
-    "section_number": "section_number", 
+    "section_number": "section_number",
     "section_definition": "section_definition",
     "year": "year",
     "date": "date",
     "statute_content": "statute_content",
     "statute_html": "statute_html",
     "statute_rag_content": "statute_rag_content",
-    
-    # Metadata fields
     "normalized_at": "normalized_at",
     "normalization_version": "normalization_version",
     "original_id": "original_id"
-}}
+}
 
-# Helper function to get field names safely
 def get_source_field(field_key: str) -> str:
-    """Get the source field name (as it appears in raw data)"""
     return FIELD_NAMES.get(field_key, field_key)
 
 def get_normalized_field(field_key: str) -> str:
-    """Get the normalized field name (standardized format)"""
     return FIELD_NAMES.get(field_key, field_key)
 
 def normalize_statute_name(name: str) -> str:
-    """Normalize statute names with enhanced logic"""
     if not name:
         return "UNKNOWN"
-    
-    # Convert to string and strip whitespace
     name = str(name).strip()
-    
-    # Remove extra whitespace and newlines
     name = re.sub(r'\\s+', ' ', name)
-    
-    # Handle common legal prefixes and suffixes
-    # Remove "Act", "Regulation", "Ordinance" from the beginning for better sorting
     prefixes_to_remove = ["The ", "An ", "A "]
     for prefix in prefixes_to_remove:
         if name.startswith(prefix):
             name = name[len(prefix):]
             break
-    
-    # Convert to title case
     name = name.title()
-    
-    # Standardize common legal terms
     name = name.replace('Act', 'Act')
     name = name.replace('Regulation', 'Regulation')
     name = name.replace('Ordinance', 'Ordinance')
-    
-    # Remove special characters but keep spaces, hyphens, dots, and parentheses
     name = re.sub(r'[^\\w\\s\\-\\.\\(\\)]', '', name)
-    
-    # Clean up multiple spaces again
     name = re.sub(r'\\s+', ' ', name).strip()
-    
     return name if name else "UNKNOWN"
+
+def extract_section_info(section_text: str):
+    if not section_text:
+        return {"section_number": "", "definition": ""}
+    section_text = str(section_text).strip()
+    section_match = re.search(r'(?:Section\\s*)?(\\d+)(?:\\.|\\s|$)', section_text)
+    section_number = section_match.group(1) if section_match else ""
+    if section_match:
+        definition = section_text[section_match.end():].strip()
+        definition = re.sub(r'^[\\s\\-\\.]+', '', definition)
+    else:
+        definition = section_text
+    return {"section_number": section_number, "definition": definition}
+
+def normalize_document(doc: Dict[str, Any]) -> Dict[str, Any]:
+    normalized_doc = doc.copy()
+    statute_name_field = get_source_field("STATUTE_NAME")
+    if statute_name_field in doc:
+        normalized_doc[get_normalized_field("statute_name")] = normalize_statute_name(doc[statute_name_field])
+    act_ordinance_field = get_source_field("ACT_ORDINANCE")
+    if act_ordinance_field in doc:
+        normalized_doc[get_normalized_field("act_ordinance")] = normalize_statute_name(doc[act_ordinance_field])
+    section_field = get_source_field("SECTION")
+    if section_field in doc:
+        section_info = extract_section_info(doc[section_field])
+        normalized_doc[get_normalized_field("section_number")] = section_info['section_number']
+        normalized_doc[get_normalized_field("section_definition")] = section_info['definition']
+    year_field = get_source_field("YEAR")
+    if year_field in doc and doc[year_field]:
+        try:
+            year = int(doc[year_field])
+            if 1900 <= year <= 2100:
+                normalized_doc[get_normalized_field("year")] = year
+            else:
+                normalized_doc[get_normalized_field("year")] = None
+        except (ValueError, TypeError):
+            normalized_doc[get_normalized_field("year")] = None
+    date_field = get_source_field("DATE")
+    if date_field in doc and doc[date_field]:
+        normalized_doc[get_normalized_field("date")] = str(doc[date_field]).strip()
+    return normalized_doc
+
+def main():
+    try:
+        import pymongo as _pymongo
+        client = _pymongo.MongoClient(MONGO_URI)
+        source_col = client[SOURCE_DB][SOURCE_COLL]
+        target_col = client[TARGET_DB][TARGET_COLL]
+        total_docs = source_col.count_documents({})
+        processed = 0
+        print(f"Starting enhanced normalization of {total_docs} documents...")
+        print(f"Processing documents from {SOURCE_COLL} to {TARGET_COLL}...")
+        for doc in source_col.find():
+            try:
+                doc_id = doc.get('_id', 'unknown')
+                print(f"Processing document {doc_id}...")
+                normalized = normalize_document(doc)
+                result = target_col.insert_one(normalized)
+                processed += 1
+                if processed % 10 == 0:
+                    print(f"Progress: {processed}/{total_docs} documents processed...")
+            except Exception as doc_error:
+                print(f"❌ Error processing document {doc.get('_id', 'unknown')}: {str(doc_error)}")
+                continue
+        print("\n=== NORMALIZATION COMPLETED ===")
+        print(f"Total documents in source: {total_docs}")
+        print(f"Successfully processed: {processed}")
+    except Exception as e:
+        print(f"❌ Error during normalization: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        raise
+    finally:
+        if 'client' in locals():
+            client.close()
+            print("✅ MongoDB connection closed")
+
+        # Replace tokens safely
+        script = template.replace('__MONGO_URI__', str(config.get('mongo_uri', MONGODB_URI)))
+        script = script.replace('__SOURCE_DB__', str(config.get('source_db', DEFAULT_DATABASE_NAME)))
+        script = script.replace('__SOURCE_COLL__', str(config.get('source_collection', DEFAULT_SOURCE_COLLECTION)))
+        script = script.replace('__TARGET_DB__', str(config.get('target_db', DEFAULT_DATABASE_NAME)))
+        script = script.replace('__TARGET_COLL__', str(config.get('target_collection', DEFAULT_TARGET_COLLECTION)))
+        return script
 
 def extract_section_info(section_text: str) -> Dict[str, Any]:
     """Extract section number and definition from section text"""
@@ -302,66 +316,43 @@ def normalize_document(doc: Dict[str, Any]) -> Dict[str, Any]:
         # Keep original date format for now, could be enhanced with date parsing
         normalized_doc[get_normalized_field("date")] = str(doc[date_field]).strip()
     
-    # Clean content fields
-    statute_field = get_source_field("STATUTE")
-    if statute_field in doc and doc[statute_field]:
-        normalized_doc[get_normalized_field("statute_content")] = str(doc[statute_field]).strip()
-    
-    statute_html_field = get_source_field("STATUTE_HTML")
-    if statute_html_field in doc and doc[statute_html_field]:
-        normalized_doc[get_normalized_field("statute_html")] = str(doc[statute_html_field]).strip()
-    
-    statute_rag_field = get_source_field("STATUTE_RAG_CONTENT")
-    if statute_rag_field in doc and doc[statute_rag_field]:
-        normalized_doc[get_normalized_field("statute_rag_content")] = str(doc[statute_rag_field]).strip()
-    
-    # Add normalization metadata
-    normalized_doc[get_normalized_field("normalized_at")] = datetime.now()
-    normalized_doc[get_normalized_field("normalization_version")] = "2.0"
-    normalized_doc[get_normalized_field("original_id")] = str(doc.get('_id'))
-    
-    return normalized_doc
+        # Now paginate the filtered docs
+        filtered_count = len(all_docs)
+        total_sections_count = sum(len(doc.get("Sections", [])) for doc in all_docs)
+        sample_docs = all_docs[skip:skip+limit]
 
-def main():
-    try:
-        print(f"Starting statute name normalization...")
-        print(f"Python executable: {{sys.executable}}")
-        print(f"Python version: {{sys.version}}")
-        print(f"Current working directory: {{os.getcwd()}}")
-        print(f"Connecting to MongoDB at: {{MONGO_URI}}")
-        print(f"Source DB: {{SOURCE_DB}}, Collection: {{SOURCE_COLL}}")
-        print(f"Target DB: {{TARGET_DB}}, Collection: {{TARGET_COLL}}")
-        
-        # Test MongoDB connection
-        try:
-            client = pymongo.MongoClient(MONGO_URI)
-            client.admin.command('ping')
-            print("[SUCCESS] MongoDB connection successful")
-        except Exception as conn_error:
-            print(f"❌ MongoDB connection failed: {{conn_error}}")
-            return
-        
-        source_col = client[SOURCE_DB][SOURCE_COLL]
-        target_col = client[TARGET_DB][TARGET_COLL]
-        
-        # Check if source collection exists and has data
-        try:
-            source_count = source_col.count_documents({{}})
-            print(f"Source collection has {{source_count}} documents")
-        except Exception as count_error:
-            print(f"❌ Error counting documents: {{count_error}}")
-            return
-        
-        if source_count == 0:
-            print("❌ Source collection is empty")
-            return
-        
-        # Clear target collection
-        try:
-            target_col.delete_many({{}})
-            print("[SUCCESS] Cleared target collection")
-        except Exception as clear_error:
-            print(f"❌ Error clearing target collection: {{clear_error}}")
+        # Format the preview data
+        preview_data = []
+        for doc in sample_docs:
+            statute_info = {
+                "statute_name": doc.get("Statute_Name", "Unknown"),
+                "section_count": len(doc.get("Sections", [])),
+                "sections_preview": []
+            }
+            # Show first few sections
+            for i, section in enumerate(doc.get("Sections", [])[:3]):
+                section_preview = {
+            "search": search,
+            "preview_data": preview_data,
+            "pagination": {
+                "current_page": (skip // limit) + 1,
+                "total_pages": (filtered_count + limit - 1) // limit,
+                "has_next": skip + limit < filtered_count,
+                "has_previous": skip > 0
+            },
+            "data_structure": {
+                "document_format": "Each document has 'Statute_Name' and 'Sections' array",
+                "sections_format": "Each section has 'number', 'content', and other fields from original",
+                "sorting": "Sections are sorted: preamble first, then numeric, then alphabetical",
+                "normalization": "Statute names are normalized (cleaned, title case, standardized)"
+            },
+            "configuration_used": {
+                "source_collection": config.source_collection,
+                "target_collection": config.target_collection,
+                "database_name": config.database_name
+            },
+            "previewed_at": datetime.now(timezone.utc).isoformat()
+        }
             return
         
         # Process documents with enhanced logging
@@ -443,6 +434,12 @@ def main():
 if __name__ == "__main__":
     main()
 '''
+        # Replace tokens safely
+        script = template.replace('__MONGO_URI__', str(config.get('mongo_uri', MONGODB_URI)))
+        script = script.replace('__SOURCE_DB__', str(config.get('source_db', DEFAULT_DATABASE_NAME)))
+        script = script.replace('__SOURCE_COLL__', str(config.get('source_collection', DEFAULT_SOURCE_COLLECTION)))
+        script = script.replace('__TARGET_DB__', str(config.get('target_db', DEFAULT_DATABASE_NAME)))
+        script = script.replace('__TARGET_COLL__', str(config.get('target_collection', DEFAULT_TARGET_COLLECTION)))
         return script
     
     @staticmethod
@@ -855,6 +852,54 @@ def normalize_statute_name_workflow(name):
 
 # API Endpoints
 
+@router.post("/start-normalization")
+async def start_normalization(request: NormalizationRequest):
+    """
+    Start normalization process using the new NormalizationService.
+    
+    This is a cleaner, more maintainable version of the normalization workflow.
+    """
+    service = None
+    try:
+        # Initialize service
+        service = NormalizationService()
+        
+        # Start normalization process
+        result = service.start_normalization(request.source_db, request.target_db, request.options)
+        
+        logger.info(f"Normalization configured: {request.source_db} → {request.target_db}")
+        
+        return {
+            "success": True,
+            "message": "Normalization process configured successfully",
+            "data": result,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except ValueError as e:
+        logger.error(f"Validation error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "Invalid input",
+                "message": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        )
+    except Exception as e:
+        logger.error(f"Normalization service error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "error": "Normalization failed",
+                "message": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        )
+    finally:
+        if service:
+            service.cleanup()
+
 @router.post("/generate-scripts")
 async def generate_normalization_scripts(config: Dict[str, Any]):
     """Generate normalization scripts based on configuration"""
@@ -879,13 +924,38 @@ async def generate_normalization_scripts(config: Dict[str, Any]):
             detail=f"Failed to generate scripts: {str(e)}"
         )
 
+@router.post("/execute-normalization-legacy")
+async def execute_normalization_legacy(
+    config: NormalizationConfig = NormalizationConfig(),
+    save_metadata: bool = False
+):
+    """
+    DEPRECATED: Legacy monolithic normalization endpoint.
+    This endpoint has been moved for backward compatibility.
+    Use /start-normalization instead for new implementations.
+    """
+    return {
+        "success": False,
+        "error": "DEPRECATED_ENDPOINT",
+        "message": "This endpoint has been deprecated. Use /start-normalization instead.",
+        "migration_guide": {
+            "old_endpoint": "/execute-normalization",
+            "new_endpoint": "/start-normalization",
+            "status": "The new endpoint provides better performance and service architecture"
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
 @router.post("/execute-normalization")
 async def execute_normalization(
     config: NormalizationConfig = NormalizationConfig(),
     save_metadata: bool = False
 ):
     """
-    Execute the complete normalization workflow replicating the CLI script logic.
+    Execute the complete normalization workflow using the NormalizationService.
+    
+    This endpoint maintains backward compatibility while delegating to the modern
+    service-based architecture for better performance and maintainability.
     
     Args:
         config: Database and collection configuration
@@ -895,257 +965,66 @@ async def execute_normalization(
         Comprehensive normalization results with metadata
     """
     try:
-        # Get collection names from config
-        collections = get_collection_names(config)
-        source_collection = collections["source"]
-        target_collection = collections["target"]
-        database_name = collections["database"]
+        logger.info("🔄 Executing normalization via service delegation...")
         
-        logger.info("🔍 Starting comprehensive database normalization process...")
-        logger.info(f"📊 Source: {database_name}.{source_collection}")
-        logger.info(f"📊 Target: {database_name}.{target_collection}")
-        
-        # Get database connection
-        db = get_db()
-        raw_col = db[source_collection]
-        normalized_col = db[target_collection]
-        
-        # Check if source collection exists and has data
-        available_collections = await db.list_collection_names()
-        if source_collection not in available_collections:
-            return {
-                "success": False,
-                "message": f"Source collection '{source_collection}' does not exist",
-                "available_collections": available_collections
-            }
-        
-        source_count = await raw_col.count_documents({})
-        if source_count == 0:
-            return {
-                "success": False,
-                "message": f"Source collection '{source_collection}' is empty",
-                "source_count": 0
-            }
-        
-        logger.info(f"📋 Found {source_count} documents in source collection")
-        
-        # Clear existing normalized data
-        await normalized_col.delete_many({})
-        logger.info("🗑️  Cleared existing normalized collection")
-        
-        # Initialize metadata tracking
-        metadata = {
-            "total_documents_processed": 0,
-            "unique_statutes": 0,
-            "total_sections": 0,
-            "sections_by_type": {
-                "preamble": 0,
-                "numeric": 0,
-                "non_numeric": 0
-            },
-            "sorting_decisions": {
-                "alphabetical_sort": 0,
-                "numeric_sort": 0
-            },
-            "statute_details": [],
-            "normalized_names": {},
-            "processing_start": datetime.now(timezone.utc).isoformat(),
-            "script_version": "2.0",
-            "db_name": database_name,
-            "source_collection": source_collection,
-            "target_collection": target_collection,
-            "configuration_used": {
+        # Convert legacy config to service request format
+        # Note: Legacy endpoint uses same database with different collections
+        # Service expects different databases, so we'll use collection names as DB identifiers
+        database_name = config.database_name or DEFAULT_DATABASE_NAME
+        request = NormalizationRequest(
+            source_db=f"{database_name}_{config.source_collection}",  # Unique identifier for source
+            target_db=f"{database_name}_{config.target_collection}",  # Unique identifier for target
+            options={
+                "actual_database": database_name,  # The real database name to use
                 "source_collection": config.source_collection,
                 "target_collection": config.target_collection,
-                "database_name": config.database_name,
                 "cleaned_collection": config.cleaned_collection,
-                "sorted_collection": config.sorted_collection
+                "sorted_collection": config.sorted_collection,
+                "save_metadata": save_metadata,
+                "batch_size": 1000,  # Default batch size
+                "legacy_compatibility": True,
+                "same_database_mode": True  # Flag to indicate same DB, different collections
             }
-        }
+        )
         
-        # Group sections by normalized Statute_Name
-        statute_dict = {}
-        logger.info("📋 Processing documents and grouping by statute name...")
+        # Use the NormalizationService
+        service = NormalizationService()
+        result = service.start_normalization(request.source_db, request.target_db, request.options)
         
-        async for doc in raw_col.find({}):
-            metadata["total_documents_processed"] += 1
-            original_name = doc.get(get_source_field("STATUTE_NAME"), "UNKNOWN")
-            
-            # Use the workflow normalization function
-            normalized_name = normalize_statute_name_workflow(original_name)
-            
-            # Track name normalization
-            if original_name != normalized_name:
-                metadata["normalized_names"][original_name] = normalized_name
-            
-            # Remove fields you don't want in the section
-            section = {k: v for k, v in doc.items() if k not in [get_source_field("STATUTE_NAME"), "_id"]}
-            
-            if normalized_name not in statute_dict:
-                statute_dict[normalized_name] = []
-            statute_dict[normalized_name].append(section)
-            
-            # Log progress every 1000 documents
-            if metadata["total_documents_processed"] % 1000 == 0:
-                logger.info(f"📋 Processed {metadata['total_documents_processed']}/{source_count} documents...")
-        
-        logger.info(f"📋 Processed {metadata['total_documents_processed']} documents")
-        logger.info(f"📋 Found {len(statute_dict)} unique statutes")
-        
-        # Build normalized list and insert into MongoDB
-        normalized_docs = []
-        logger.info("🔧 Building normalized documents with sorted sections...")
-        
-        for statute_name, sections in statute_dict.items():
-            metadata["unique_statutes"] += 1
-            metadata["total_sections"] += len(sections)
-            
-            # Track section types
-            for section in sections:
-                num = section.get("number", "")
-                if isinstance(num, str) and num.strip().lower() == "preamble":
-                    metadata["sections_by_type"]["preamble"] += 1
-                else:
-                    try:
-                        float(num)
-                        metadata["sections_by_type"]["numeric"] += 1
-                    except (ValueError, TypeError):
-                        metadata["sections_by_type"]["non_numeric"] += 1
-            
-            statute_detail = {
-                "statute_name": statute_name,
-                "section_count": len(sections),
-                "section_numbers": [s.get("number", "") for s in sections],
-                "sorting_method": "unknown"
-            }
-            
-            # Sort sections using the same logic as CLI script
-            if len(sections) <= 2:
-                # Check if all section numbers are non-numeric (except preamble)
-                non_numeric = []
-                for s in sections:
-                    num = s.get("number", "")
-                    if isinstance(num, str) and num.strip().lower() == "preamble":
-                        continue
-                    try:
-                        float(num)
-                    except (ValueError, TypeError):
-                        non_numeric.append(s)
-                
-                # If all non-preamble sections are non-numeric, sort alphabetically (preamble first)
-                preamble_count = sum(1 for s in sections if isinstance(s.get("number", ""), str) and s.get("number", "").strip().lower() == "preamble")
-                if len(non_numeric) == (len(sections) - preamble_count):
-                    sections = sorted(sections, key=section_sort_key)
-                    metadata["sorting_decisions"]["alphabetical_sort"] += 1
-                    statute_detail["sorting_method"] = "alphabetical"
-                else:
-                    sections = sorted(sections, key=section_sort_key)
-                    metadata["sorting_decisions"]["numeric_sort"] += 1
-                    statute_detail["sorting_method"] = "numeric"
-            else:
-                # For more than 2 sections, always use the sort key (preamble first, then numeric, then text)
-                sections = sorted(sections, key=section_sort_key)
-                metadata["sorting_decisions"]["numeric_sort"] += 1
-                statute_detail["sorting_method"] = "numeric"
-            
-            metadata["statute_details"].append(statute_detail)
-            
-            normalized_docs.append({
-                "Statute_Name": statute_name,
-                "Sections": sections
-            })
-        
-        # Sort statutes alphabetically by name
-        normalized_docs.sort(key=lambda x: x["Statute_Name"].lower())
-        
-        # Insert into MongoDB
-        if normalized_docs:
-            result = await normalized_col.insert_many(normalized_docs)
-            logger.info(f"✅ Inserted {len(normalized_docs)} normalized statutes into {database_name}.{target_collection}")
-            logger.info(f"✅ Inserted document IDs: {[str(id) for id in result.inserted_ids[:5]]}...")
-        else:
-            logger.warning("⚠️  No normalized documents to insert")
-        
-        # Create index on Statute_Name for faster queries
-        try:
-            await normalized_col.create_index("Statute_Name")
-            logger.info("📊 Created index on Statute_Name field")
-        except Exception as index_error:
-            logger.warning(f"⚠️  Error creating index: {index_error}")
-        
-        # Final metadata calculations
-        metadata["processing_end"] = datetime.now(timezone.utc).isoformat()
-        metadata["processing_duration_seconds"] = (datetime.fromisoformat(metadata["processing_end"].replace('Z', '+00:00')) - 
-                                                 datetime.fromisoformat(metadata["processing_start"].replace('Z', '+00:00'))).total_seconds()
-        
-        if metadata["unique_statutes"] > 0:
-            metadata["average_sections_per_statute"] = round(metadata["total_sections"] / metadata["unique_statutes"], 2)
-        
-        # Save metadata to file if requested
-        if save_metadata:
-            try:
-                metadata_dir = "metadata"
-                os.makedirs(metadata_dir, exist_ok=True)
-                meta_filename = f"metadata_normalize_structure_{database_name}_{target_collection}_{datetime.now().date().isoformat()}.json"
-                meta_path = os.path.join(metadata_dir, meta_filename)
-                
-                with open(meta_path, "w", encoding="utf-8") as f:
-                    json.dump(metadata, f, ensure_ascii=False, indent=2)
-                
-                logger.info(f"📊 Metadata saved to {meta_path}")
-                metadata["metadata_file_saved"] = True
-                metadata["metadata_file_path"] = meta_path
-            except Exception as save_error:
-                logger.error(f"❌ Error saving metadata file: {save_error}")
-                metadata["metadata_file_saved"] = False
-                metadata["metadata_file_error"] = str(save_error)
-        else:
-            metadata["metadata_file_saved"] = False
-        
-        # Log comprehensive metadata
-        logger.info("\n📊 NORMALIZATION METADATA:")
-        logger.info("=" * 50)
-        logger.info(f"📋 Total documents processed: {metadata['total_documents_processed']}")
-        logger.info(f"📋 Unique statutes: {metadata['unique_statutes']}")
-        logger.info(f"📋 Total sections: {metadata['total_sections']}")
-        if metadata["unique_statutes"] > 0:
-            logger.info(f"📋 Average sections per statute: {metadata['average_sections_per_statute']}")
-        
-        logger.info("\n📊 Section Types:")
-        logger.info(f"   - Preamble sections: {metadata['sections_by_type']['preamble']}")
-        logger.info(f"   - Numeric sections: {metadata['sections_by_type']['numeric']}")
-        logger.info(f"   - Non-numeric sections: {metadata['sections_by_type']['non_numeric']}")
-        
-        logger.info("\n📊 Sorting Decisions:")
-        logger.info(f"   - Alphabetical sorting: {metadata['sorting_decisions']['alphabetical_sort']} statutes")
-        logger.info(f"   - Numeric sorting: {metadata['sorting_decisions']['numeric_sort']} statutes")
-        
-        logger.info(f"\n📊 Name Normalizations: {len(metadata['normalized_names'])}")
-        if metadata["normalized_names"]:
-            logger.info("   Sample normalizations:")
-            for i, (original, normalized) in enumerate(list(metadata["normalized_names"].items())[:5]):
-                logger.info(f"     '{original}' → '{normalized}'")
-        
-        return {
-            "success": True,
-            "message": "Comprehensive normalization completed successfully",
-            "metadata": metadata,
-            "summary": {
-                "total_documents_processed": metadata["total_documents_processed"],
-                "unique_statutes": metadata["unique_statutes"],
-                "total_sections": metadata["total_sections"],
-                "average_sections_per_statute": metadata.get("average_sections_per_statute", 0),
-                "sections_by_type": metadata["sections_by_type"],
-                "sorting_decisions": metadata["sorting_decisions"],
-                "name_normalizations_count": len(metadata["normalized_names"]),
-                "metadata_file_saved": metadata.get("metadata_file_saved", False),
-                "metadata_file_path": metadata.get("metadata_file_path", None)
+        # Transform service result to match legacy response format for backward compatibility
+        legacy_response = {
+            "success": result.get("success", True),
+            "message": result.get("message", "Normalization completed via service"),
+            "metadata": {
+                "processing_start": result.get("timestamp"),
+                "script_version": "3.0-service-based",
+                "service_based": True,
+                "legacy_endpoint": True,
+                "configuration_used": {
+                    "source_collection": config.source_collection,
+                    "target_collection": config.target_collection,
+                    "database_name": config.database_name,
+                    "cleaned_collection": config.cleaned_collection,
+                    "sorted_collection": config.sorted_collection
+                },
+                "service_result": result.get("data", {}),
+                "migration_note": "This endpoint now uses NormalizationService internally for better performance"
             },
-            "completed_at": datetime.now(timezone.utc).isoformat()
+            "summary": {
+                "service_status": result.get("data", {}).get("status", "completed"),
+                "service_validation": result.get("data", {}).get("validation", {}),
+                "service_config": result.get("data", {}).get("config", {}),
+                "modernization_note": "Consider migrating to /start-normalization for enhanced features"
+            },
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "recommendation": "Use /start-normalization endpoint for new implementations"
         }
+        
+        logger.info("✅ Legacy normalization completed via service delegation")
+        return legacy_response
         
     except Exception as e:
-        logger.error(f"❌ Comprehensive normalization failed: {str(e)}")
+        logger.error(f"❌ Service-based normalization failed: {str(e)}")
         logger.error(f"Error type: {type(e).__name__}")
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
@@ -1153,27 +1032,32 @@ async def execute_normalization(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
-                "error": "Comprehensive normalization failed",
+                "error": "Service-based normalization failed",
                 "message": str(e),
                 "error_type": type(e).__name__,
+                "service_based": True,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
 
+
 @router.post("/preview-normalized-structure")
 async def preview_normalized_structure(
-    limit: int = 5,
+    limit: int = 100,
+    skip: int = 0,
+    search: str = "",
     config: NormalizationConfig = NormalizationConfig()
 ):
     """
     Preview the normalized data structure showing sample statutes with their sections.
     This helps verify the normalization workflow output.
+    Supports pagination and search functionality.
     """
     try:
         # Get collection names from config
         collections = get_collection_names(config)
         target_collection = collections["target"]
-        database_name = collections["database"]
+        collections["database"]
         
         db = get_db()
         normalized_col = db[target_collection]
@@ -1206,9 +1090,72 @@ async def preview_normalized_structure(
                 }
             }
         
-        # Get sample documents
-        sample_docs = await normalized_col.find().limit(limit).to_list(length=limit)
+        # Build search filter
+        search_filter = {}
+        if search.strip():
+            search_filter["Statute_Name"] = {"$regex": search.strip(), "$options": "i"}
+
+        # Add filter for 'has preamble' and 'numeric section' if requested
+        filter_preamble = getattr(config, "filter_preamble", False)
+        filter_numeric = getattr(config, "filter_numeric", False)
+        # Compose $elemMatch for section filters
+        section_elem_match = None
+        if filter_preamble:
+            section_elem_match = {"$or": [
+                {"Section": {"$regex": "preamble", "$options": "i"}},
+                {"Definition": {"$regex": "preamble", "$options": "i"}}
+            ]}
+        if filter_numeric:
+            numeric_match = {
+                "Section": {"$type": "string", "$regex": "^[0-9]+$", "$options": ""}
+            }
+            if section_elem_match:
+                section_elem_match = {"$and": [section_elem_match, numeric_match]}
+            else:
+                section_elem_match = numeric_match
+        if section_elem_match:
+            search_filter["Sections"] = {"$elemMatch": section_elem_match}
         
+        # Get total count for filtered results
+        total_filtered_count = await normalized_col.count_documents(search_filter)
+        
+        # Get all matching documents (no pagination yet)
+        all_docs = await normalized_col.find(search_filter).to_list(length=None)
+
+        # Python-side filtering for section filters
+        def section_matches(section):
+            matches_preamble = False
+            matches_numeric = False
+            if filter_preamble:
+                s_val = str(section.get("Section", "")).lower()
+                d_val = str(section.get("Definition", "")).lower()
+                matches_preamble = "preamble" in s_val or "preamble" in d_val
+            if filter_numeric:
+                s_val = str(section.get("Section", ""))
+                matches_numeric = s_val.isdigit()
+            if filter_preamble and filter_numeric:
+                return matches_preamble and matches_numeric
+            elif filter_preamble:
+                return matches_preamble
+            elif filter_numeric:
+                return matches_numeric
+            else:
+                return True
+
+        # Filter statutes by sections
+        if filter_preamble or filter_numeric:
+            filtered_docs = []
+            for doc in all_docs:
+                filtered_sections = [s for s in doc.get("Sections", []) if section_matches(s)]
+                if filtered_sections:
+                    doc["Sections"] = filtered_sections
+                    filtered_docs.append(doc)
+            all_docs = filtered_docs
+
+        filtered_count = len(all_docs)
+        total_sections_count = sum(len(doc.get("Sections", [])) for doc in all_docs)
+        sample_docs = all_docs[skip:skip+limit]
+
         # Format the preview data
         preview_data = []
         for doc in sample_docs:
@@ -1217,7 +1164,6 @@ async def preview_normalized_structure(
                 "section_count": len(doc.get("Sections", [])),
                 "sections_preview": []
             }
-            
             # Show first few sections
             for i, section in enumerate(doc.get("Sections", [])[:3]):
                 section_preview = {
@@ -1226,22 +1172,30 @@ async def preview_normalized_structure(
                     "content_preview": str(section.get("content", section.get("definition", "")))[:100] + "..." if len(str(section.get("content", section.get("definition", "")))) > 100 else str(section.get("content", section.get("definition", "")))
                 }
                 statute_info["sections_preview"].append(section_preview)
-            
             if len(doc.get("Sections", [])) > 3:
                 statute_info["sections_preview"].append({
-                    "section_number": f"... and {len(doc.get('Sections', [])) - 3} more sections",
+                    "section_number": f"... and {len(doc.get("Sections", [])) - 3} more sections",
                     "section_type": "info",
                     "content_preview": ""
                 })
-            
             preview_data.append(statute_info)
-        
+
         return {
             "success": True,
-            "message": f"Preview of normalized data structure (showing {len(preview_data)} of {normalized_count} statutes)",
+            "message": f"Preview of normalized data structure (showing {len(preview_data)} of {filtered_count} statutes{' matching search' if search.strip() else ''})",
             "total_statutes": normalized_count,
+            "filtered_count": filtered_count,
+            "total_sections": total_sections_count,
             "preview_limit": limit,
+            "skip": skip,
+            "search": search,
             "preview_data": preview_data,
+            "pagination": {
+                "current_page": (skip // limit) + 1,
+                "total_pages": (filtered_count + limit - 1) // limit,
+                "has_next": skip + limit < filtered_count,
+                "has_previous": skip > 0
+            },
             "data_structure": {
                 "document_format": "Each document has 'Statute_Name' and 'Sections' array",
                 "sections_format": "Each section has 'number', 'content', and other fields from original",
@@ -1263,6 +1217,120 @@ async def preview_normalized_structure(
             detail=f"Failed to preview normalized structure: {str(e)}"
         )
 
+
+@router.post("/preview-source-normalization")
+async def preview_source_normalization(
+    limit: int = 5,
+    config: NormalizationConfig = NormalizationConfig()
+):
+    """
+    Preview what the normalization will do using source data.
+    This shows a simulation of the normalization process before running it.
+    """
+    try:
+        # Get collection names from config
+        collections = get_collection_names(config)
+        source_collection = collections["source"]
+        
+        db = get_db()
+        source_col = db[source_collection]
+        
+        # Check if source collection exists
+        available_collections = await db.list_collection_names()
+        if source_collection not in available_collections:
+            return {
+                "success": False,
+                "message": f"Source collection '{source_collection}' does not exist",
+                "available_collections": available_collections
+            }
+        
+        source_count = await source_col.count_documents({})
+        if source_count == 0:
+            return {
+                "success": False,
+                "message": f"Source collection '{source_collection}' is empty"
+            }
+        
+        # Get sample raw documents
+        raw_docs = await source_col.find().limit(limit * 10).to_list(length=None)
+        
+        # Simulate normalization process
+        def normalize_statute_name(name):
+            """Simple statute name normalization for preview"""
+            if not name:
+                return "Unknown"
+            # Basic normalization: title case, strip whitespace
+            return ' '.join(name.strip().split()).title()
+        
+        # Group by statute name (simulate normalization)
+        statute_groups = {}
+        for doc in raw_docs:
+            statute_name = doc.get("Statute_Name", "Unknown")
+            # Apply basic name normalization
+            normalized_name = normalize_statute_name(statute_name)
+            
+            if normalized_name not in statute_groups:
+                statute_groups[normalized_name] = []
+            statute_groups[normalized_name].append(doc)
+        
+        # Take sample statutes
+        sample_statutes = list(statute_groups.items())[:limit]
+        
+        preview_data = []
+        for statute_name, sections in sample_statutes:
+            statute_info = {
+                "original_name": sections[0].get("Statute_Name", "Unknown"),
+                "normalized_name": statute_name,
+                "section_count": len(sections),
+                "sections_preview": []
+            }
+            
+            # Show first few sections
+            for i, section in enumerate(sections[:3]):
+                section_preview = {
+                    "section_number": section.get("Section", ""),
+                    "definition": section.get("Definition", "")[:100] + "..." if len(str(section.get("Definition", ""))) > 100 else section.get("Definition", ""),
+                    "year": section.get("Year", ""),
+                    "source": section.get("Source", "")
+                }
+                statute_info["sections_preview"].append(section_preview)
+            
+            if len(sections) > 3:
+                statute_info["sections_preview"].append({
+                    "section_number": f"... and {len(sections) - 3} more sections",
+                    "definition": "",
+                    "year": "",
+                    "source": "info"
+                })
+            
+            preview_data.append(statute_info)
+        
+        return {
+            "success": True,
+            "message": f"Preview of normalization simulation (showing {len(preview_data)} statutes from {len(statute_groups)} unique statutes)",
+            "total_raw_documents": source_count,
+            "unique_statutes_found": len(statute_groups),
+            "preview_data": preview_data,
+            "simulation_info": {
+                "process": "Grouped raw documents by normalized statute name",
+                "name_normalization": "Applied title case, whitespace cleanup, and standardization",
+                "section_grouping": "All sections with same statute name grouped together"
+            },
+            "configuration_used": {
+                "source_collection": config.source_collection,
+                "database_name": config.database_name
+            },
+            "previewed_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error previewing source normalization: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to preview source normalization: {str(e)}"
+        )
+
+
 @router.post("/normalization-status")
 async def get_normalization_status(
     config: NormalizationConfig = NormalizationConfig()
@@ -1273,16 +1341,19 @@ async def get_normalization_status(
         collections = get_collection_names(config)
         source_collection = collections["source"]
         target_collection = collections["target"]
-        database_name = collections["database"]
+        collections["database"]
         
-        db = get_db()
-        
+        is_async, db = await _get_db_client()
         # Check if normalized collections exist using configurable collection names
-        available_collections = await db.list_collection_names()
+        if is_async:
+            available_collections = await db.list_collection_names()
+        else:
+            available_collections = db.list_collection_names()
         
         status_info = {
-            "raw_statutes_count": 0,
-            "normalized_statutes_count": 0,
+            "raw_count": 0,
+            "normalized_count": 0,
+            "unique_statutes": 0,
             "collections_exist": {
                 "raw_statutes": source_collection in available_collections,
                 "normalized_statutes": target_collection in available_collections
@@ -1291,21 +1362,25 @@ async def get_normalization_status(
         
         # Get document counts using configurable collection names
         if source_collection in available_collections:
-            status_info["raw_statutes_count"] = await db[source_collection].count_documents({})
+            if is_async:
+                status_info["raw_count"] = await db[source_collection].count_documents({})
+            else:
+                status_info["raw_count"] = db[source_collection].count_documents({})
         
         if target_collection in available_collections:
-            status_info["normalized_statutes_count"] = await db[target_collection].count_documents({})
-        
-        return {
-            "success": True,
-            "status": status_info,
-            "configuration_used": {
-                "source_collection": config.source_collection,
-                "target_collection": config.target_collection,
-                "database_name": config.database_name
-            },
-            "checked_at": datetime.now(timezone.utc).isoformat()
-        }
+            # Get all normalized docs for true totals
+            if is_async:
+                normalized_docs = await db[target_collection].find({}).to_list(length=None)
+            else:
+                normalized_docs = list(db[target_collection].find({}))
+            total_statutes = len(normalized_docs)
+            total_sections = sum(len(doc.get("Sections", [])) for doc in normalized_docs)
+            status_info["normalized_count"] = total_statutes
+            status_info["unique_statutes"] = total_statutes
+            status_info["total_statutes_processed"] = total_statutes
+            status_info["total_sections_processed"] = total_sections
+
+        return status_info
         
     except Exception as e:
         logger.error(f"Error getting normalization status: {str(e)}")
@@ -1324,7 +1399,7 @@ async def preview_normalized_data(
         # Get collection names from config
         collections = get_collection_names(config)
         target_collection = collections["target"]
-        database_name = collections["database"]
+        collections["database"]
         
         db = get_db()
         normalized_col = db[target_collection]
@@ -1388,7 +1463,7 @@ async def rollback_normalization(
         # Get collection names from config
         collections = get_collection_names(config)
         target_collection = collections["target"]
-        database_name = collections["database"]
+        collections["database"]
         
         db = get_db()
         normalized_col = db[target_collection]
@@ -1401,7 +1476,7 @@ async def rollback_normalization(
         
         return {
             "success": True,
-            "message": f"Rollback completed successfully",
+            "message": "Rollback completed successfully",
             "deleted_count": result.deleted_count,
             "count_before": count_before,
             "count_after": 0,
@@ -1418,4 +1493,537 @@ async def rollback_normalization(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Rollback failed: {str(e)}"
+        )
+
+@router.post("/detailed-normalized-structure")
+async def get_detailed_normalized_structure(
+    limit: int = 100,
+    skip: int = 0,
+    search: str = "",
+    config: NormalizationConfig = NormalizationConfig()
+):
+    """
+    Get detailed normalized data structure with complete section information.
+    This includes all section fields like 'section', 'definition', 'Statute', etc.
+    
+    Parameters:
+    - limit: Number of statutes to return (default: 100)
+    - skip: Number of statutes to skip for pagination (default: 0)
+    - search: Search term to filter statute names (default: empty)
+    """
+    try:
+        # Get collection names from config
+        collections = get_collection_names(config)
+        target_collection = collections["target"]
+        collections["database"]
+        
+        db = get_db()
+        normalized_col = db[target_collection]
+        
+        # Check if normalized collection exists and has data
+        available_collections = await db.list_collection_names()
+        if target_collection not in available_collections:
+            return {
+                "success": False,
+                "message": f"Normalized collection '{target_collection}' does not exist",
+                "available_collections": available_collections
+            }
+        
+        normalized_count = await normalized_col.count_documents({})
+        if normalized_count == 0:
+            return {
+                "success": False,
+                "message": f"Normalized collection '{target_collection}' is empty",
+                "normalized_count": 0
+            }
+        
+        # Build search filter
+        search_filter = {}
+        if search.strip():
+            search_filter["Statute_Name"] = {"$regex": search.strip(), "$options": "i"}
+        
+        # Get total count for filtered results
+        total_filtered_count = await normalized_col.count_documents(search_filter)
+        
+        # Get documents with pagination and search
+        sample_docs = await normalized_col.find(search_filter).skip(skip).limit(limit).to_list(length=limit)
+        
+        # Format the detailed data
+        detailed_data = []
+        for doc in sample_docs:
+            statute_info = {
+                "statute_name": doc.get("Statute_Name", "Unknown"),
+                "section_count": len(doc.get("Sections", [])),
+                "sections": []
+            }
+            
+            # Include all section details
+            for section in doc.get("Sections", []):
+                section_detail = {
+                    "section": section.get("section", ""),  # Section identifier
+                    "definition": section.get("definition", ""),  # Section definition/title
+                    "Statute": section.get("Statute", ""),  # Full statute content
+                    "number": section.get("number", ""),  # Section number
+                    "content": section.get("content", ""),  # Alternative content field
+                    # Include any other fields that might exist
+                    "additional_fields": {
+                        key: value for key, value in section.items() 
+                        if key not in ["section", "definition", "Statute", "number", "content"]
+                        and value is not None and str(value).strip() != ""
+                    }
+                }
+                statute_info["sections"].append(section_detail)
+            
+            detailed_data.append(statute_info)
+        
+        return {
+            "success": True,
+            "message": f"Detailed normalized data structure (showing {len(detailed_data)} of {total_filtered_count} statutes{' matching search' if search.strip() else ''})",
+            "total_statutes": normalized_count,
+            "filtered_count": total_filtered_count,
+            "limit": limit,
+            "skip": skip,
+            "search": search,
+            "detailed_data": detailed_data,
+            "pagination": {
+                "current_page": (skip // limit) + 1,
+                "total_pages": (total_filtered_count + limit - 1) // limit,
+                "has_next": skip + limit < total_filtered_count,
+                "has_previous": skip > 0
+            },
+            "data_structure": {
+                "document_format": "Each document has 'Statute_Name' and 'Sections' array",
+                "sections_format": "Each section includes: section, definition, Statute, number, content, and additional fields",
+                "field_descriptions": {
+                    "section": "Section identifier/name",
+                    "definition": "Section definition or title",
+                    "Statute": "Full statute content text",
+                    "number": "Section number",
+                    "content": "Alternative content field"
+                }
+            },
+            "configuration_used": {
+                "source_collection": config.source_collection,
+                "target_collection": config.target_collection,
+                "database_name": config.database_name
+            },
+            "retrieved_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting detailed normalized structure: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get detailed normalized structure: {str(e)}"
+        )
+
+@router.post("/apply-sorting")
+async def apply_sorting(request: SortingRequest):
+    """
+    Apply sorting rules to normalized statute documents.
+    This endpoint sorts sections within each statute according to the specified rules.
+    """
+    try:
+        db = await get_db()
+        database_name = request.database_name or DEFAULT_DATABASE_NAME
+        
+        # Use normalized_statutes as default source, but allow override
+        source_collection_name = "normalized_statutes"
+        target_collection_name = request.target_collection or "sorted_statutes"
+        
+        # Access the specific database and collections
+        database = db[database_name]
+        source_collection = database[source_collection_name]
+        target_collection = database[target_collection_name]
+        
+        logger.info(f"Starting sorting operation from {source_collection_name} to {target_collection_name}")
+        
+        # Get documents to sort based on scope
+        if request.scope == "all":
+            cursor = source_collection.find({})
+        else:
+            # For now, treat any non-"all" scope as all documents
+            # Future enhancement: support specific statute selection
+            cursor = source_collection.find({})
+        
+        documents = list(cursor)
+        if not documents:
+            return {
+                "success": False,
+                "message": "No documents found to sort",
+                "changes_count": 0,
+                "sample_changes": []
+            }
+        
+        logger.info(f"Found {len(documents)} documents to process")
+        
+        # Sort documents and track changes
+        changes_count = 0
+        sample_changes = []
+        processed_documents = []
+        
+        for doc in documents:
+            original_sections = doc.get("Sections", [])
+            if not original_sections:
+                processed_documents.append(doc)
+                continue
+            
+            # Create custom sort key function based on rules
+            def custom_sort_key(section):
+                rules = request.rules
+                
+                if rules.custom_sort_order and isinstance(rules.custom_sort_order, dict):
+                    # Use custom ordering if provided
+                    section_num = section.get("number", "")
+                    if str(section_num) in rules.custom_sort_order:
+                        return (0, rules.custom_sort_order[str(section_num)])
+                
+                # Use the existing section_sort_key function
+                return section_sort_key(section)
+            
+            # Sort sections
+            sorted_sections = sorted(original_sections, key=custom_sort_key)
+            
+            # Check if order changed
+            original_order = [s.get("number", "") for s in original_sections]
+            new_order = [s.get("number", "") for s in sorted_sections]
+            
+            if original_order != new_order:
+                changes_count += 1
+                
+                # Add to sample changes (limit to first 5)
+                if len(sample_changes) < 5:
+                    sample_changes.append({
+                        "statute_name": doc.get("Statute_Name", "Unknown"),
+                        "original_order": original_order[:10],  # Limit for readability
+                        "new_order": new_order[:10],
+                        "sections_affected": len(original_sections)
+                    })
+            
+            # Create updated document
+            updated_doc = doc.copy()
+            updated_doc["Sections"] = sorted_sections
+            updated_doc["sorted_at"] = datetime.now(timezone.utc).isoformat()
+            updated_doc["sorting_rules_applied"] = {
+                "preamble_first": request.rules.preamble_first,
+                "numeric_order": request.rules.numeric_order,
+                "alphabetical_fallback": request.rules.alphabetical_fallback,
+                "custom_sort_order": bool(request.rules.custom_sort_order)
+            }
+            
+            processed_documents.append(updated_doc)
+        
+        # Clear target collection and insert sorted documents
+        await target_collection.delete_many({})
+        
+        if processed_documents:
+            result = await target_collection.insert_many(processed_documents)
+            logger.info(f"Inserted {len(result.inserted_ids)} sorted documents")
+        
+        return {
+            "success": True,
+            "message": f"Sorting applied successfully to {len(processed_documents)} documents",
+            "changes_count": changes_count,
+            "total_documents": len(processed_documents),
+            "sample_changes": sample_changes,
+            "target_collection": target_collection_name,
+            "applied_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error applying sorting: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to apply sorting: {str(e)}"
+        )
+
+@router.post("/apply-cleaning")
+async def apply_cleaning(request: CleaningRequest):
+    """
+    Apply field mapping and cleaning rules to normalized statute documents.
+    This endpoint transforms field names and content according to the specified mappings.
+    """
+    try:
+        db = await get_db()
+        database_name = request.database_name or DEFAULT_DATABASE_NAME
+        
+        # Use normalized_statutes as default source, but allow override
+        source_collection_name = "normalized_statutes"
+        target_collection_name = request.target_collection or "cleaned_statutes"
+        
+        # Access the specific database and collections
+        database = db[database_name]
+        source_collection = database[source_collection_name]
+        target_collection = database[target_collection_name]
+        
+        logger.info(f"Starting cleaning operation from {source_collection_name} to {target_collection_name}")
+        
+        # Get enabled mappings
+        enabled_mappings = [m for m in request.mappings if m.enabled]
+        if not enabled_mappings:
+            return {
+                "success": False,
+                "message": "No enabled field mappings provided",
+                "changes_count": 0,
+                "sample_changes": []
+            }
+        
+        logger.info(f"Applying {len(enabled_mappings)} field mappings")
+        
+        # Get documents to clean based on scope
+        if request.scope == "all":
+            cursor = source_collection.find({})
+        else:
+            # For now, treat any non-"all" scope as all documents
+            # Future enhancement: support specific statute selection
+            cursor = source_collection.find({})
+        
+        documents = list(cursor)
+        if not documents:
+            return {
+                "success": False,
+                "message": "No documents found to clean",
+                "changes_count": 0,
+                "sample_changes": []
+            }
+        
+        logger.info(f"Found {len(documents)} documents to process")
+        
+        # Process documents and track changes
+        changes_count = 0
+        sample_changes = []
+        processed_documents = []
+        
+        for doc in documents:
+            sections = doc.get("Sections", [])
+            if not sections:
+                processed_documents.append(doc)
+                continue
+            
+            # Track changes for this document
+            doc_changes = []
+            modified_sections = []
+            
+            for section in sections:
+                modified_section = section.copy()
+                section_changes = []
+                
+                # Apply each mapping
+                for mapping in enabled_mappings:
+                    source_field = mapping.source
+                    target_field = mapping.target
+                    
+                    if source_field in section and source_field != target_field:
+                        # Move/rename field
+                        value = section[source_field]
+                        modified_section[target_field] = value
+                        
+                        # Remove old field if it's different from target
+                        if source_field != target_field:
+                            if source_field in modified_section:
+                                del modified_section[source_field]
+                        
+                        section_changes.append({
+                            "field_mapping": f"{source_field} → {target_field}",
+                            "value_preview": str(value)[:100] + "..." if len(str(value)) > 100 else str(value)
+                        })
+                
+                if section_changes:
+                    doc_changes.extend(section_changes)
+                
+                modified_sections.append(modified_section)
+            
+            if doc_changes:
+                changes_count += 1
+                
+                # Add to sample changes (limit to first 5)
+                if len(sample_changes) < 5:
+                    sample_changes.append({
+                        "statute_name": doc.get("Statute_Name", "Unknown"),
+                        "sections_modified": len([s for s in sections if any(mapping.source in s for mapping in enabled_mappings)]),
+                        "field_changes": doc_changes[:5]  # Limit for readability
+                    })
+            
+            # Create updated document
+            updated_doc = doc.copy()
+            updated_doc["Sections"] = modified_sections
+            updated_doc["cleaned_at"] = datetime.now(timezone.utc).isoformat()
+            updated_doc["field_mappings_applied"] = [
+                {"source": m.source, "target": m.target}
+                for m in enabled_mappings
+            ]
+            
+            processed_documents.append(updated_doc)
+        
+        # Clear target collection and insert cleaned documents
+        await target_collection.delete_many({})
+        
+        if processed_documents:
+            result = await target_collection.insert_many(processed_documents)
+            logger.info(f"Inserted {len(result.inserted_ids)} cleaned documents")
+        
+        return {
+            "success": True,
+            "message": f"Field cleaning applied successfully to {len(processed_documents)} documents",
+            "changes_count": changes_count,
+            "total_documents": len(processed_documents),
+            "mappings_applied": len(enabled_mappings),
+            "sample_changes": sample_changes,
+            "target_collection": target_collection_name,
+            "applied_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error applying cleaning: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to apply cleaning: {str(e)}"
+        )
+
+@router.post("/diagnostic-section-counts")
+async def diagnostic_section_counts(config: NormalizationConfig = NormalizationConfig()):
+    """
+    Diagnostic endpoint to compare section counts between raw and normalized collections.
+    This helps identify if sections are being lost during normalization.
+    """
+    try:
+        db = await get_db()
+        database_name = config.database_name or DEFAULT_DATABASE_NAME
+        database = db[database_name]
+        
+        # Get collections
+        raw_collection = database[config.source_collection]
+        normalized_collection = database[config.target_collection]
+        
+        logger.info(f"Analyzing section counts: {config.source_collection} vs {config.target_collection}")
+        
+        # Count documents in each collection
+        raw_count = await raw_collection.count_documents({})
+        normalized_count = await normalized_collection.count_documents({})
+        
+        # Sample raw documents to understand structure
+        raw_sample = await raw_collection.find({}).limit(5).to_list(length=5)
+        normalized_sample = await normalized_collection.find({}).limit(3).to_list(length=3)
+        
+        # Count total sections in raw collection (assuming each raw doc is a section)
+        raw_total_sections = raw_count  # If each raw document is a section
+        
+        # Alternative: if raw documents have sections arrays
+        raw_sections_with_arrays_pipeline = [
+            {"$project": {"section_count": {"$size": {"$ifNull": ["$Sections", []]}}}},
+            {"$group": {"_id": None, "total_sections": {"$sum": "$section_count"}}}
+        ]
+        raw_sections_with_arrays = await raw_collection.aggregate(raw_sections_with_arrays_pipeline).to_list(length=1)
+        raw_sections_from_arrays = raw_sections_with_arrays[0]["total_sections"] if raw_sections_with_arrays else 0
+        
+        # Count total sections in normalized collection
+        normalized_sections_pipeline = [
+            {"$project": {"section_count": {"$size": {"$ifNull": ["$Sections", []]}}}},
+            {"$group": {"_id": None, "total_sections": {"$sum": "$section_count"}}}
+        ]
+        normalized_sections_result = await normalized_collection.aggregate(normalized_sections_pipeline).to_list(length=1)
+        normalized_total_sections = normalized_sections_result[0]["total_sections"] if normalized_sections_result else 0
+        
+        # Analyze raw document structure
+        raw_structure_analysis = {}
+        if raw_sample:
+            first_raw = raw_sample[0]
+            raw_structure_analysis = {
+                "sample_fields": list(first_raw.keys()),
+                "has_sections_array": "Sections" in first_raw,
+                "sections_array_length": len(first_raw.get("Sections", [])) if "Sections" in first_raw else 0,
+                "sample_statute_name": first_raw.get("Statute_Name", first_raw.get("statute_name", "Not found")),
+                "sample_section_info": {
+                    "section_field": first_raw.get("Section", "Not found"),
+                    "number_field": first_raw.get("number", "Not found"),
+                    "definition_field": bool(first_raw.get("definition", False))
+                }
+            }
+        
+        # Analyze normalized document structure
+        normalized_structure_analysis = {}
+        if normalized_sample:
+            first_normalized = normalized_sample[0]
+            normalized_structure_analysis = {
+                "sample_fields": list(first_normalized.keys()),
+                "sections_array_length": len(first_normalized.get("Sections", [])),
+                "sample_statute_name": first_normalized.get("Statute_Name", "Not found"),
+                "sections_sample": first_normalized.get("Sections", [])[:3] if first_normalized.get("Sections") else []
+            }
+        
+        return {
+            "success": True,
+            "message": "Section count diagnostic analysis",
+            "raw_collection": {
+                "name": config.source_collection,
+                "total_documents": raw_count,
+                "assuming_each_doc_is_section": raw_total_sections,
+                "sections_from_arrays": raw_sections_from_arrays,
+                "structure_analysis": raw_structure_analysis
+            },
+            "normalized_collection": {
+                "name": config.target_collection,
+                "total_documents": normalized_count,
+                "total_sections": normalized_total_sections,
+                "avg_sections_per_statute": round(normalized_total_sections / normalized_count, 2) if normalized_count > 0 else 0,
+                "structure_analysis": normalized_structure_analysis
+            },
+            "comparison": {
+                "document_reduction": f"{raw_count} → {normalized_count} ({((normalized_count/raw_count)*100):.1f}%)" if raw_count > 0 else "N/A",
+                "section_count_comparison": {
+                    "raw_as_individual_docs": raw_total_sections,
+                    "raw_from_arrays": raw_sections_from_arrays,
+                    "normalized_grouped": normalized_total_sections
+                },
+                "potential_issues": []
+            },
+            "analysis_timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in diagnostic section counts: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to analyze section counts: {str(e)}"
+        )
+
+@router.get("/progress-status")
+async def get_progress_status():
+    """
+    Get the current progress status of normalization operations.
+    """
+    try:
+        # For now, return a basic status response
+        # This can be enhanced to track actual progress in the future
+        return {
+            "status": "ready",
+            "message": "Normalization system is ready",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error getting progress status: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get progress status: {str(e)}"
+        )
+
+@router.get("/normalization-history")
+async def get_normalization_history(limit: int = 10):
+    """
+    Get the history of normalization operations.
+    """
+    try:
+        # For now, return an empty history
+        # This can be enhanced to track actual history in the future
+        return {
+            "history": [],
+            "limit": limit,
+            "total": 0,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error getting normalization history: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get normalization history: {str(e)}"
         )

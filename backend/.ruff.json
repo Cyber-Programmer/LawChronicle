@@ -1,0 +1,1260 @@
+﻿[
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 44,
+      "row": 4
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\auth.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from ....core.auth import create_access_token, get_current_user, verify_password",
+          "end_location": {
+            "column": 119,
+            "row": 4
+          },
+          "location": {
+            "column": 1,
+            "row": 4
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 27,
+      "row": 4
+    },
+    "message": "`....core.auth.authenticate_user` imported but unused",
+    "noqa_row": 4,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 119,
+      "row": 4
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\auth.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from ....core.auth import create_access_token, get_current_user, verify_password",
+          "end_location": {
+            "column": 119,
+            "row": 4
+          },
+          "location": {
+            "column": 1,
+            "row": 4
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 102,
+      "row": 4
+    },
+    "message": "`....core.auth.get_password_hash` imported but unused",
+    "noqa_row": 4,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 10,
+      "row": 12
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\auth.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 12
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 12,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 45,
+      "row": 1
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\database.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from fastapi import APIRouter, Depends",
+          "end_location": {
+            "column": 62,
+            "row": 1
+          },
+          "location": {
+            "column": 1,
+            "row": 1
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 32,
+      "row": 1
+    },
+    "message": "`fastapi.HTTPException` imported but unused",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 53,
+      "row": 1
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\database.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from fastapi import APIRouter, Depends",
+          "end_location": {
+            "column": 62,
+            "row": 1
+          },
+          "location": {
+            "column": 1,
+            "row": 1
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 47,
+      "row": 1
+    },
+    "message": "`fastapi.status` imported but unused",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 51,
+      "row": 2
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\database.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 3
+          },
+          "location": {
+            "column": 1,
+            "row": 2
+          }
+        }
+      ],
+      "message": "Remove unused import: `motor.motor_asyncio.AsyncIOMotorClient`"
+    },
+    "location": {
+      "column": 33,
+      "row": 2
+    },
+    "message": "`motor.motor_asyncio.AsyncIOMotorClient` imported but unused",
+    "noqa_row": 2,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 54,
+      "row": 1
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase1.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from fastapi import APIRouter, HTTPException, Query",
+          "end_location": {
+            "column": 61,
+            "row": 1
+          },
+          "location": {
+            "column": 1,
+            "row": 1
+          }
+        }
+      ],
+      "message": "Remove unused import: `fastapi.Depends`"
+    },
+    "location": {
+      "column": 47,
+      "row": 1
+    },
+    "message": "`fastapi.Depends` imported but unused",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 24,
+      "row": 2
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase1.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from typing import Optional",
+          "end_location": {
+            "column": 45,
+            "row": 2
+          },
+          "location": {
+            "column": 1,
+            "row": 2
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 20,
+      "row": 2
+    },
+    "message": "`typing.List` imported but unused",
+    "noqa_row": 2,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 40,
+      "row": 2
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase1.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from typing import Optional",
+          "end_location": {
+            "column": 45,
+            "row": 2
+          },
+          "location": {
+            "column": 1,
+            "row": 2
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 36,
+      "row": 2
+    },
+    "message": "`typing.Dict` imported but unused",
+    "noqa_row": 2,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 45,
+      "row": 2
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase1.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from typing import Optional",
+          "end_location": {
+            "column": 45,
+            "row": 2
+          },
+          "location": {
+            "column": 1,
+            "row": 2
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 42,
+      "row": 2
+    },
+    "message": "`typing.Any` imported but unused",
+    "noqa_row": 2,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 15,
+      "row": 5
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase1.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 6
+          },
+          "location": {
+            "column": 1,
+            "row": 5
+          }
+        }
+      ],
+      "message": "Remove unused import: `asyncio`"
+    },
+    "location": {
+      "column": 8,
+      "row": 5
+    },
+    "message": "`asyncio` imported but unused",
+    "noqa_row": 5,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 12,
+      "row": 7
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase1.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 8
+          },
+          "location": {
+            "column": 1,
+            "row": 7
+          }
+        }
+      ],
+      "message": "Remove unused import: `json`"
+    },
+    "location": {
+      "column": 8,
+      "row": 7
+    },
+    "message": "`json` imported but unused",
+    "noqa_row": 7,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 37,
+      "row": 10
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase1.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 11
+          },
+          "location": {
+            "column": 1,
+            "row": 10
+          }
+        }
+      ],
+      "message": "Remove unused import: `....core.database.get_db`"
+    },
+    "location": {
+      "column": 31,
+      "row": 10
+    },
+    "message": "`....core.database.get_db` imported but unused",
+    "noqa_row": 10,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F601",
+    "end_location": {
+      "column": 60,
+      "row": 123
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase1.py",
+    "fix": null,
+    "location": {
+      "column": 55,
+      "row": 123
+    },
+    "message": "Dictionary key literal `\"$ne\"` repeated",
+    "noqa_row": 123,
+    "url": "https://docs.astral.sh/ruff/rules/multi-value-repeated-key-literal"
+  },
+  {
+    "cell": null,
+    "code": "F601",
+    "end_location": {
+      "column": 72,
+      "row": 128
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase1.py",
+    "fix": null,
+    "location": {
+      "column": 67,
+      "row": 128
+    },
+    "message": "Dictionary key literal `\"$ne\"` repeated",
+    "noqa_row": 128,
+    "url": "https://docs.astral.sh/ruff/rules/multi-value-repeated-key-literal"
+  },
+  {
+    "cell": null,
+    "code": "E722",
+    "end_location": {
+      "column": 19,
+      "row": 135
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase1.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 135
+    },
+    "message": "Do not use bare `except`",
+    "noqa_row": 135,
+    "url": "https://docs.astral.sh/ruff/rules/bare-except"
+  },
+  {
+    "cell": null,
+    "code": "E722",
+    "end_location": {
+      "column": 19,
+      "row": 242
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase1.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 242
+    },
+    "message": "Do not use bare `except`",
+    "noqa_row": 242,
+    "url": "https://docs.astral.sh/ruff/rules/bare-except"
+  },
+  {
+    "cell": null,
+    "code": "E722",
+    "end_location": {
+      "column": 31,
+      "row": 257
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase1.py",
+    "fix": null,
+    "location": {
+      "column": 25,
+      "row": 257
+    },
+    "message": "Do not use bare `except`",
+    "noqa_row": 257,
+    "url": "https://docs.astral.sh/ruff/rules/bare-except"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 70,
+      "row": 1
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase2.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from fastapi import APIRouter, HTTPException, status",
+          "end_location": {
+            "column": 70,
+            "row": 1
+          },
+          "location": {
+            "column": 1,
+            "row": 1
+          }
+        }
+      ],
+      "message": "Remove unused import: `fastapi.BackgroundTasks`"
+    },
+    "location": {
+      "column": 55,
+      "row": 1
+    },
+    "message": "`fastapi.BackgroundTasks` imported but unused",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 35,
+      "row": 2
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase2.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from typing import Dict, Any, Optional",
+          "end_location": {
+            "column": 52,
+            "row": 2
+          },
+          "location": {
+            "column": 1,
+            "row": 2
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 31,
+      "row": 2
+    },
+    "message": "`typing.List` imported but unused",
+    "noqa_row": 2,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 52,
+      "row": 2
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase2.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from typing import Dict, Any, Optional",
+          "end_location": {
+            "column": 52,
+            "row": 2
+          },
+          "location": {
+            "column": 1,
+            "row": 2
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 47,
+      "row": 2
+    },
+    "message": "`typing.Union` imported but unused",
+    "noqa_row": 2,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 51,
+      "row": 3
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase2.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 4
+          },
+          "location": {
+            "column": 1,
+            "row": 3
+          }
+        }
+      ],
+      "message": "Remove unused import: `motor.motor_asyncio.AsyncIOMotorClient`"
+    },
+    "location": {
+      "column": 33,
+      "row": 3
+    },
+    "message": "`motor.motor_asyncio.AsyncIOMotorClient` imported but unused",
+    "noqa_row": 3,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 45,
+      "row": 13
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase2.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 14
+          },
+          "location": {
+            "column": 1,
+            "row": 13
+          }
+        }
+      ],
+      "message": "Remove unused import: `shared.types.common.BaseResponse`"
+    },
+    "location": {
+      "column": 33,
+      "row": 13
+    },
+    "message": "`shared.types.common.BaseResponse` imported but unused",
+    "noqa_row": 13,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 22,
+      "row": 1176
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase2.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 25,
+            "row": 1176
+          },
+          "location": {
+            "column": 9,
+            "row": 1176
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `database_name`"
+    },
+    "location": {
+      "column": 9,
+      "row": 1176
+    },
+    "message": "Local variable `database_name` is assigned to but never used",
+    "noqa_row": 1176,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 22,
+      "row": 1276
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase2.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 25,
+            "row": 1276
+          },
+          "location": {
+            "column": 9,
+            "row": 1276
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `database_name`"
+    },
+    "location": {
+      "column": 9,
+      "row": 1276
+    },
+    "message": "Local variable `database_name` is assigned to but never used",
+    "noqa_row": 1276,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 22,
+      "row": 1327
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase2.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 25,
+            "row": 1327
+          },
+          "location": {
+            "column": 9,
+            "row": 1327
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `database_name`"
+    },
+    "location": {
+      "column": 9,
+      "row": 1327
+    },
+    "message": "Local variable `database_name` is assigned to but never used",
+    "noqa_row": 1327,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 22,
+      "row": 1391
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase2.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 25,
+            "row": 1391
+          },
+          "location": {
+            "column": 9,
+            "row": 1391
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `database_name`"
+    },
+    "location": {
+      "column": 9,
+      "row": 1391
+    },
+    "message": "Local variable `database_name` is assigned to but never used",
+    "noqa_row": 1391,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F541",
+    "end_location": {
+      "column": 58,
+      "row": 1404
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase2.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "\"Rollback completed successfully\"",
+          "end_location": {
+            "column": 58,
+            "row": 1404
+          },
+          "location": {
+            "column": 24,
+            "row": 1404
+          }
+        }
+      ],
+      "message": "Remove extraneous `f` prefix"
+    },
+    "location": {
+      "column": 24,
+      "row": 1404
+    },
+    "message": "f-string without any placeholders",
+    "noqa_row": 1404,
+    "url": "https://docs.astral.sh/ruff/rules/f-string-missing-placeholders"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 22,
+      "row": 1436
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase2.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 25,
+            "row": 1436
+          },
+          "location": {
+            "column": 9,
+            "row": 1436
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `database_name`"
+    },
+    "location": {
+      "column": 9,
+      "row": 1436
+    },
+    "message": "Local variable `database_name` is assigned to but never used",
+    "noqa_row": 1436,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 15,
+      "row": 11
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase3.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 12
+          },
+          "location": {
+            "column": 1,
+            "row": 11
+          }
+        }
+      ],
+      "message": "Remove unused import: `asyncio`"
+    },
+    "location": {
+      "column": 8,
+      "row": 11
+    },
+    "message": "`asyncio` imported but unused",
+    "noqa_row": 11,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "E722",
+    "end_location": {
+      "column": 19,
+      "row": 182
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase3.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 182
+    },
+    "message": "Do not use bare `except`",
+    "noqa_row": 182,
+    "url": "https://docs.astral.sh/ruff/rules/bare-except"
+  },
+  {
+    "cell": null,
+    "code": "E722",
+    "end_location": {
+      "column": 19,
+      "row": 292
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phase3.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 292
+    },
+    "message": "Do not use bare `except`",
+    "noqa_row": 292,
+    "url": "https://docs.astral.sh/ruff/rules/bare-except"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 78,
+      "row": 3
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\api\\v1\\endpoints\\phases.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from shared.types.common import BaseResponse, PhaseMetadata",
+          "end_location": {
+            "column": 78,
+            "row": 3
+          },
+          "location": {
+            "column": 1,
+            "row": 3
+          }
+        }
+      ],
+      "message": "Remove unused import: `shared.types.common.ProcessingStatus`"
+    },
+    "location": {
+      "column": 62,
+      "row": 3
+    },
+    "message": "`shared.types.common.ProcessingStatus` imported but unused",
+    "noqa_row": 3,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 33,
+      "row": 70
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\app\\core\\batch_processor.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 36,
+            "row": 70
+          },
+          "location": {
+            "column": 21,
+            "row": 70
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `batch_result`"
+    },
+    "location": {
+      "column": 21,
+      "row": 70
+    },
+    "message": "Local variable `batch_result` is assigned to but never used",
+    "noqa_row": 70,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 10,
+      "row": 2
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\main.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 3
+          },
+          "location": {
+            "column": 1,
+            "row": 2
+          }
+        }
+      ],
+      "message": "Remove unused import: `os`"
+    },
+    "location": {
+      "column": 8,
+      "row": 2
+    },
+    "message": "`os` imported but unused",
+    "noqa_row": 2,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 43,
+      "row": 8
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\main.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from fastapi import FastAPI",
+          "end_location": {
+            "column": 43,
+            "row": 8
+          },
+          "location": {
+            "column": 1,
+            "row": 8
+          }
+        }
+      ],
+      "message": "Remove unused import: `fastapi.HTTPException`"
+    },
+    "location": {
+      "column": 30,
+      "row": 8
+    },
+    "message": "`fastapi.HTTPException` imported but unused",
+    "noqa_row": 8,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 43,
+      "row": 10
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\main.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 11
+          },
+          "location": {
+            "column": 1,
+            "row": 10
+          }
+        }
+      ],
+      "message": "Remove unused import: `fastapi.responses.JSONResponse`"
+    },
+    "location": {
+      "column": 31,
+      "row": 10
+    },
+    "message": "`fastapi.responses.JSONResponse` imported but unused",
+    "noqa_row": 10,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 37,
+      "row": 12
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\main.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 13
+          },
+          "location": {
+            "column": 1,
+            "row": 12
+          }
+        }
+      ],
+      "message": "Remove unused import: `app.core.config.settings`"
+    },
+    "location": {
+      "column": 29,
+      "row": 12
+    },
+    "message": "`app.core.config.settings` imported but unused",
+    "noqa_row": 12,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 60,
+      "row": 23
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\test_normalization_fix.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from app.api.v1.endpoints.phase2 import get_source_field, get_normalized_field",
+          "end_location": {
+            "column": 100,
+            "row": 23
+          },
+          "location": {
+            "column": 9,
+            "row": 23
+          }
+        }
+      ],
+      "message": "Remove unused import: `app.api.v1.endpoints.phase2.FIELD_NAMES`"
+    },
+    "location": {
+      "column": 49,
+      "row": 23
+    },
+    "message": "`app.api.v1.endpoints.phase2.FIELD_NAMES` imported but unused",
+    "noqa_row": 23,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 43,
+      "row": 3
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\tests\\test_api_endpoints.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from unittest.mock import patch",
+          "end_location": {
+            "column": 43,
+            "row": 3
+          },
+          "location": {
+            "column": 1,
+            "row": 3
+          }
+        }
+      ],
+      "message": "Remove unused import: `unittest.mock.MagicMock`"
+    },
+    "location": {
+      "column": 34,
+      "row": 3
+    },
+    "message": "`unittest.mock.MagicMock` imported but unused",
+    "noqa_row": 3,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 12,
+      "row": 4
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\tests\\test_api_endpoints.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 5
+          },
+          "location": {
+            "column": 1,
+            "row": 4
+          }
+        }
+      ],
+      "message": "Remove unused import: `json`"
+    },
+    "location": {
+      "column": 8,
+      "row": 4
+    },
+    "message": "`json` imported but unused",
+    "noqa_row": 4,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 30,
+      "row": 5
+    },
+    "filename": "d:\\DigiFloat\\LawChronicle\\backend\\tests\\test_api_endpoints.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 6
+          },
+          "location": {
+            "column": 1,
+            "row": 5
+          }
+        }
+      ],
+      "message": "Remove unused import: `datetime.datetime`"
+    },
+    "location": {
+      "column": 22,
+      "row": 5
+    },
+    "message": "`datetime.datetime` imported but unused",
+    "noqa_row": 5,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  }
+]

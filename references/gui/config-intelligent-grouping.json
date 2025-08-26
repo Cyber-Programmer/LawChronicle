@@ -1,0 +1,109 @@
+{
+  "mongo_uri": "mongodb://localhost:27017",
+  "source_db": "Batched-Statutes",
+  "source_collection": "batch1",
+  "target_db": "Intelligent-Grouped-Statutes",
+  "target_collection": "batch1",
+  
+  "azure_openai": {
+    "api_key": "EkkatBw5ktWZPOs3unXeiH5lNAKpMAYOYJqQuaOpiAGjDHDY4xZUJQQJ99BGACYeBjFXJ3w3AAAAACOGtZUY",
+    "endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
+    "model": "gpt-4o",
+    "api_version": "2024-11-01-preview",
+    "max_tokens": 1000,
+    "temperature": 0.1
+  },
+  
+  "context_analysis": {
+    "enable_constitutional_detection": true,
+    "enable_legal_lineage_analysis": true,
+    "enable_amendment_relationship_detection": true,
+    "confidence_threshold": 0.7,
+    "max_context_length": 2000,
+    "cache_ttl_hours": 168
+  },
+  
+  "prompt_templates": {
+    "constitutional_amendment": {
+      "system": "You are a Pakistani constitutional law expert with 25+ years experience.",
+      "user_template": "Analyze if this statute is a constitutional amendment..."
+    },
+    "section_amendment": {
+      "system": "You are a legal document analyst specializing in statutory amendments.",
+      "user_template": "Extract amendment sections from this statute..."
+    },
+    "statute_equivalence": {
+      "system": "You are a legal historian analyzing statute relationships.",
+      "user_template": "Determine if these statutes are related..."
+    }
+  },
+  
+  "processing": {
+    "batch_size": 500,
+    "max_workers": 4,
+    "enable_parallel_processing": true,
+    "enable_progress_tracking": true,
+    "enable_real_time_analysis": true
+  },
+  
+  "ui": {
+    "window_width": 1600,
+    "window_height": 1000,
+    "refresh_interval": 500,
+    "max_log_entries": 2000,
+    "auto_save_interval": 300,
+    "enable_dark_mode": false,
+    "enable_animations": true
+  },
+  
+  "export": {
+    "default_format": "json",
+    "include_metadata": true,
+    "include_context_analysis": true,
+    "include_legal_lineage": true,
+    "include_amendment_chains": true,
+    "include_confidence_scores": true
+  },
+  
+  "logging": {
+    "level": "INFO",
+    "file_output": true,
+    "console_output": true,
+    "max_file_size": "20MB",
+    "log_context_analysis": true,
+    "log_gpt_responses": true
+  },
+  
+  "validation": {
+    "enable_legal_expert_validation": false,
+    "enable_confidence_thresholds": true,
+    "enable_fallback_analysis": true,
+    "enable_error_recovery": true
+  },
+  
+  "performance": {
+    "enable_caching": true,
+    "enable_batch_processing": true,
+    "enable_smart_filtering": true,
+    "max_memory_usage": "4GB",
+    "enable_progress_bars": true,
+    "enable_preprocessing": true,
+    "preprocessing_cache_size": 1000,
+    "enable_language_detection": true,
+    "enable_section_similarity": true
+  },
+  
+  "preprocessing": {
+    "enable_rule_based_filtering": true,
+    "enable_year_disambiguation": true,
+    "enable_title_similarity": true,
+    "enable_section_renumbering_detection": true,
+    "enable_language_translation": false,
+    "confidence_threshold_rule_based": 0.9,
+    "similarity_threshold": 0.85,
+    "year_difference_threshold": 20,
+    "max_preprocessing_cache_size": 1000,
+    "enable_batch_preprocessing": true,
+    "batch_size_preprocessing": 100
+  }
+}

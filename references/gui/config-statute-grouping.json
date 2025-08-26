@@ -1,0 +1,38 @@
+{
+  "mongo_uri": "mongodb://localhost:27017",
+  "source_db": "Batched-Statutes",
+  "source_collection": "statute",
+  "target_db": "Batch-Base-Grouped",
+  "target_collection": "statute",
+  "similarity_threshold": 0.8,
+  "azure_api_key": "EkkatBw5ktWZPOs3unXeiH5lNAKpMAYOYJqQuaOpiAGjDHDY4xZUJQQJ99BGACYeBjFXJ3w3AAAAACOGtZUY",
+  "azure_endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
+  "gpt_model": "gpt-4o",
+  "azure_api_version": "2024-11-01-preview",
+  "processing": {
+    "batch_size": 1000,
+    "max_workers": 4,
+    "enable_gpt_disambiguation": true,
+    "enable_similarity_matrix": true,
+    "enable_progress_tracking": true
+  },
+  "ui": {
+    "window_width": 1400,
+    "window_height": 900,
+    "refresh_interval": 1000,
+    "max_log_entries": 1000,
+    "auto_save_interval": 300
+  },
+  "export": {
+    "default_format": "json",
+    "include_metadata": true,
+    "include_similarity_scores": true,
+    "include_gpt_analysis": true
+  },
+  "logging": {
+    "level": "INFO",
+    "file_output": true,
+    "console_output": true,
+    "max_file_size": "10MB"
+  }
+} 

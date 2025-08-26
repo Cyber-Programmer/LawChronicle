@@ -1,0 +1,82 @@
+{
+  "batch": "batch_1",
+  "target_collection": "batch_1",
+  "start_time": "2025-08-19T08:33:11.405092",
+  "end_time": "2025-08-19T08:33:11.964888",
+  "duration_seconds": 0.559796,
+  "total_documents": 656,
+  "processed": 656,
+  "written": 656,
+  "failures": 0,
+  "samples": [
+    {
+      "_id": "689f056142d7d99cf9e6fa08",
+      "Date": "17-Feb-1975",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 90,
+        "processing_timestamp": "2025-08-19T08:33:11.414138",
+        "original_fields": [
+          "Date"
+        ],
+        "merged_date": "17-Feb-1975",
+        "normalized_date": "17-Feb-1975"
+      }
+    },
+    {
+      "_id": "689f056142d7d99cf9e6fa09",
+      "Date": "17-Feb-1975",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 90,
+        "processing_timestamp": "2025-08-19T08:33:11.424812",
+        "original_fields": [
+          "Date"
+        ],
+        "merged_date": "17-Feb-1975",
+        "normalized_date": "17-Feb-1975"
+      }
+    },
+    {
+      "_id": "689f056142d7d99cf9e6fa0a",
+      "Date": "11-May-2002",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 95,
+        "processing_timestamp": "2025-08-19T08:33:11.426194",
+        "original_fields": [
+          "Promulgation_Date"
+        ],
+        "merged_date": "05-11-2002",
+        "normalized_date": "11-May-2002"
+      }
+    },
+    {
+      "_id": "689f056142d7d99cf9e6fa0b",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T08:33:11.427209",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    },
+    {
+      "_id": "689f056142d7d99cf9e6fa0c",
+      "Date": "07-Jan-1962",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 90,
+        "processing_timestamp": "2025-08-19T08:33:11.428610",
+        "original_fields": [
+          "Date"
+        ],
+        "merged_date": "07-Jan-1962",
+        "normalized_date": "07-Jan-1962"
+      }
+    }
+  ],
+  "date_format": "DD-MMM-YYYY"
+}

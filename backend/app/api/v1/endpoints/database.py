@@ -1,7 +1,7 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi import APIRouter, Depends
 from ....core.database import get_db
-from ....core.auth import get_current_user
+from ....core.auth import get_current_user, optional_current_user
+import pymongo
 from shared.types.common import (
     BaseResponse, DatabaseConnectionRequest, DatabaseConnectionResponse,
     FieldAnalysisRequest, FieldAnalysisResponse, PaginationParams
@@ -14,32 +14,73 @@ logger = logging.getLogger(__name__)
 @router.post("/connect", response_model=BaseResponse)
 async def connect_database(
     request: DatabaseConnectionRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(optional_current_user)
 ):
     """Connect to MongoDB database"""
     try:
+        # If a specific connection_string is provided, use pymongo to test it
+        if request.connection_string:
+            try:
+                client = pymongo.MongoClient(request.connection_string)
+                if request.test_connection:
+                    client.admin.command('ping')
+                collections = client[request.database_name].list_collection_names()
+                db_info = client.admin.command('dbStats')
+                return BaseResponse(
+                    success=True,
+                    message="Database connected successfully",
+                    data=DatabaseConnectionResponse(
+                        connected=True,
+                        database_name=request.database_name,
+                        collection_count=len(collections),
+                        total_documents=db_info.get('objects', 0),
+                        collections=collections
+                    )
+                )
+            except Exception as e:
+                from fastapi import HTTPException
+                raise HTTPException(status_code=422, detail=str(e))
+
+        # Fallback: use async DB if available
         db = get_db()
-        
-        # Test connection
-        await db.client.admin.command('ping')
-        
-        # Get database info
-        db_info = await db.client.admin.command('dbStats')
-        collections = await db.list_collection_names()
-        
-        return BaseResponse(
-            success=True,
-            message="Database connected successfully",
-            data=DatabaseConnectionResponse(
-                connected=True,
-                database_name=request.database_name,
-                collection_count=len(collections),
-                total_documents=db_info.get('objects', 0),
-                collections=collections
+        if db is None:
+            return BaseResponse(success=False, message="Database not connected", error="No database instance")
+
+        # Use the requested database name when listing collections (but reuse client's connection)
+        try:
+            client = db.client
+            # Test server connectivity
+            await client.admin.command('ping')
+
+            target_db_name = request.database_name or client._Database__name if hasattr(client, '_Database__name') else None
+            # Prefer the provided database_name
+            if not target_db_name:
+                target_db_name = client._Database__name if hasattr(client, '_Database__name') else None
+
+            target_db = client[request.database_name]
+            collections = await target_db.list_collection_names()
+            db_info = await client.admin.command('dbStats')
+
+            return BaseResponse(
+                success=True,
+                message="Database connected successfully",
+                data=DatabaseConnectionResponse(
+                    connected=True,
+                    database_name=request.database_name,
+                    collection_count=len(collections),
+                    total_documents=db_info.get('objects', 0),
+                    collections=collections
+                )
             )
-        )
+        except Exception as e:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
+        from fastapi import HTTPException
         logger.error(f"Database connection failed: {e}")
+        if isinstance(e, HTTPException):
+            # let FastAPI handle HTTPExceptions so test client sees correct status
+            raise e
         return BaseResponse(
             success=False,
             message="Database connection failed",
@@ -47,7 +88,7 @@ async def connect_database(
         )
 
 @router.get("/collections", response_model=BaseResponse)
-async def get_collections(current_user: dict = Depends(get_current_user)):
+async def get_collections(current_user: dict = Depends(optional_current_user)):
     """Get list of collections in the database"""
     try:
         db = get_db()

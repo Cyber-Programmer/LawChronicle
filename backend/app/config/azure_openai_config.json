@@ -1,0 +1,33 @@
+{
+  "azure_openai": {
+    "api_key": "EkkatBw5ktWZPOs3unXeiH5lNAKpMAYOYJqQuaOpiAGjDHDY4xZUJQQJ99BGACYeBjFXJ3w3AAAAACOGtZUY",
+    "endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
+    "deployment_name": "gpt-4o",
+    "api_version": "2024-11-01-preview",
+    "model": "gpt-4o"
+  },
+  "processing": {
+    "batch_size": 50,
+    "max_retries": 3,
+    "retry_delay": 1,
+    "rate_limit_delay": 0.5,
+    "content_limit": 4000,
+    "temperature": 0.1
+  },
+  "caching": {
+    "enable_caching": true,
+    "cache_ttl": 7776000,
+    "max_cache_size": 10000
+  },
+  "logging": {
+    "log_ai_calls": true,
+    "log_responses": false,
+    "log_errors": true,
+    "mask_sensitive_data": true
+  },
+  "security": {
+    "mask_api_key": true,
+    "validate_endpoint": true,
+    "timeout_seconds": 30
+  }
+}

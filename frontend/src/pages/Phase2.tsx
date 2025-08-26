@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
-import { Database, Play, Eye, RotateCcw, FileText, BarChart3, CheckCircle, AlertCircle, Loader2, Settings, History, List, SortAsc } from 'lucide-react';
+import { Database, Play, Eye, RotateCcw, FileText, BarChart3, CheckCircle, AlertCircle, Loader2, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import StatuteNameNormalizer from '../components/phase2/StatuteNameNormalizer';
-import StructureCleaner from '../components/phase2/StructureCleaner';
-import SortingInterface from '../components/phase2/SortingInterface';
-import ProgressTracker from '../components/phase2/ProgressTracker';
 import ResultsPreview from '../components/phase2/ResultsPreview';
-import NormalizationHistory from '../components/phase2/NormalizationHistory';
 
 interface NormalizationResult {
   success: boolean;
@@ -20,6 +16,8 @@ interface PreviewData {
   success: boolean;
   message: string;
   total_statutes?: number;
+  unique_statutes_found?: number;
+  total_raw_documents?: number;
   preview_data?: any[];
   data_structure?: any;
 }
@@ -28,11 +26,10 @@ interface NormalizationConfig {
   source_collection: string;
   target_collection: string;
   database_name?: string;
-  cleaned_collection: string;
   sorted_collection: string;
 }
 
-type TabType = 'overview' | 'statute-names' | 'structure-cleaner' | 'sorting' | 'progress' | 'results' | 'history';
+type TabType = 'overview' | 'statute-names' | 'results';
 
 const Phase2: React.FC = () => {
   const { user } = useAuth();
@@ -43,13 +40,15 @@ const Phase2: React.FC = () => {
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
   const [statusInfo, setStatusInfo] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [progressStep, setProgressStep] = useState<string>('');
+  const [progressDetails, setProgressDetails] = useState<string>('');
+  const [processingStats, setProcessingStats] = useState<{processed: number, total: number} | null>(null);
   
   // Configuration state
   const [config, setConfig] = useState<NormalizationConfig>({
     source_collection: "raw_statutes",
     target_collection: "normalized_statutes",
-    database_name: "",
-    cleaned_collection: "cleaned_statutes",
+    database_name: "Statutes",
     sorted_collection: "sorted_statutes"
   });
 
@@ -57,30 +56,92 @@ const Phase2: React.FC = () => {
     setIsNormalizing(true);
     setError(null);
     setNormalizationResult(null);
+    setProgressStep('Initializing normalization process...');
+    setProgressDetails('Preparing service request and validating configuration');
+    setProcessingStats(null);
 
     try {
-      const response = await fetch(`/api/v1/phase2/execute-normalization?save_metadata=${saveMetadata}`, {
+      // Step 1: Prepare service request
+      setProgressStep('Preparing normalization request');
+      setProgressDetails(`Source: ${config.source_collection} → Target: ${config.target_collection}`);
+      
+      const sourceDb = config.database_name || "Statutes";
+      const targetDb = config.database_name || "Statutes";
+      
+      const serviceRequest = {
+        source_db: sourceDb,
+        target_db: targetDb,
+        options: {
+          source_collection: config.source_collection,
+          target_collection: config.target_collection,
+          sorted_collection: config.sorted_collection,
+          save_metadata: saveMetadata,
+          batch_size: 1000,
+          legacy_compatibility: true,  // Enable legacy mode
+          same_database_mode: true,    // Allow same database
+          actual_database: sourceDb    // The actual database name
+        }
+      };
+
+      // Step 2: Send request to service
+      setProgressStep('Sending request to normalization service');
+      setProgressDetails('Connecting to backend service endpoint...');
+
+            const response = await fetch('/api/v1/phase2/start-normalization', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(config)
+        body: JSON.stringify(serviceRequest)
       });
+
+      // Step 3: Process response
+      setProgressStep('Processing service response');
+      setProgressDetails('Analyzing normalization results...');
 
       const result = await response.json();
       
       if (response.ok) {
-        setNormalizationResult(result);
-        // Refresh status after successful normalization
+        // Step 4: Success handling
+        setProgressStep('Normalization completed successfully!');
+        setProgressDetails(`Processed statutes and created normalized collection`);
+        
+        // Transform service response to match expected format
+        const transformedResult = {
+          success: result.success,
+          message: result.message,
+          metadata: result.data?.metadata || result.data || {},
+          timestamp: result.timestamp,
+          service_based: true,
+          migration_note: "Using modern service-based normalization"
+        };
+        setNormalizationResult(transformedResult);
+        
+        // Step 5: Refresh status
+        setProgressStep('Refreshing status dashboard');
+        setProgressDetails('Updating progress indicators...');
         await getNormalizationStatus();
+        
+        setProgressStep('Ready for next phase');
+        setProgressDetails('Normalization completed successfully - ready to proceed');
       } else {
-        setError(result.detail?.message || result.message || 'Normalization failed');
+        throw new Error(result.detail?.message || result.message || 'Normalization failed');
       }
     } catch (err) {
+      setProgressStep('Error occurred during normalization');
+      setProgressDetails(err instanceof Error ? err.message : 'An unexpected error occurred');
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setIsNormalizing(false);
+      // Clear progress after a delay
+      setTimeout(() => {
+        if (!isNormalizing) {
+          setProgressStep('');
+          setProgressDetails('');
+          setProcessingStats(null);
+        }
+      }, 3000);
     }
   };
 
@@ -106,6 +167,23 @@ const Phase2: React.FC = () => {
 
   const previewNormalizedStructure = async () => {
     try {
+      // First try the source-based preview (shows what will be normalized)
+      const sourceResponse = await fetch('/api/v1/phase2/preview-source-normalization', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(config)
+      });
+      
+      if (sourceResponse.ok) {
+        const sourcePreview = await sourceResponse.json();
+        setPreviewData(sourcePreview);
+        return;
+      }
+      
+      // Fallback to existing normalized data preview
       const response = await fetch('/api/v1/phase2/preview-normalized-structure?limit=5', {
         method: 'POST',
         headers: {
@@ -119,7 +197,7 @@ const Phase2: React.FC = () => {
         const preview = await response.json();
         setPreviewData(preview);
       } else {
-        setError('Failed to preview normalized structure');
+        setError('Failed to preview structure - no source or normalized data available');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to preview data');
@@ -166,8 +244,7 @@ const Phase2: React.FC = () => {
     setConfig({
       source_collection: "raw_statutes",
       target_collection: "normalized_statutes",
-      database_name: "",
-      cleaned_collection: "cleaned_statutes",
+      database_name: "Statutes",
       sorted_collection: "sorted_statutes"
     });
   };
@@ -178,12 +255,8 @@ const Phase2: React.FC = () => {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Database },
-    { id: 'statute-names', label: 'Statute Names', icon: FileText },
-    { id: 'structure-cleaner', label: 'Structure Cleaner', icon: Settings },
-    { id: 'sorting', label: 'Sorting Interface', icon: SortAsc },
-    { id: 'progress', label: 'Progress Tracker', icon: BarChart3 },
-    { id: 'results', label: 'Results Preview', icon: Eye },
-    { id: 'history', label: 'Normalization History', icon: History }
+    { id: 'statute-names', label: 'Statute Name Normalizer', icon: FileText },
+    { id: 'results', label: 'Results Preview', icon: Eye }
   ];
 
   const renderTabContent = () => {
@@ -226,6 +299,18 @@ const Phase2: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Database Name
+                  </label>
+                  <input
+                    type="text"
+                    value={config.database_name}
+                    onChange={(e) => handleConfigChange('database_name', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Statutes"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Source Collection
                   </label>
                   <input
@@ -234,6 +319,7 @@ const Phase2: React.FC = () => {
                     onChange={(e) => handleConfigChange('source_collection', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="raw_statutes"
+                    disabled={!config.database_name}
                   />
                 </div>
                 <div>
@@ -246,30 +332,7 @@ const Phase2: React.FC = () => {
                     onChange={(e) => handleConfigChange('target_collection', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="normalized_statutes"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Database Name (optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={config.database_name}
-                    onChange={(e) => handleConfigChange('database_name', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Leave empty for default"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cleaned Collection
-                  </label>
-                  <input
-                    type="text"
-                    value={config.cleaned_collection}
-                    onChange={(e) => handleConfigChange('cleaned_collection', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="cleaned_statutes"
+                    disabled={!config.database_name}
                   />
                 </div>
               </div>
@@ -311,7 +374,7 @@ const Phase2: React.FC = () => {
                     {isNormalizing ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Processing...
+                        {progressStep || 'Processing...'}
                       </>
                     ) : (
                       <>
@@ -321,6 +384,66 @@ const Phase2: React.FC = () => {
                     )}
                   </button>
                 </div>
+                
+                {/* Enhanced Progress Display */}
+                {isNormalizing && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium text-blue-900">Processing Status</h4>
+                      <div className="flex items-center">
+                        <Loader2 className="w-4 h-4 text-blue-600 animate-spin mr-2" />
+                        <span className="text-sm text-blue-700">In Progress</span>
+                      </div>
+                    </div>
+                    
+                    {progressStep && (
+                      <div className="text-sm text-blue-800 font-medium mb-1">
+                        {progressStep}
+                      </div>
+                    )}
+                    
+                    {progressDetails && (
+                      <div className="text-xs text-blue-600">
+                        {progressDetails}
+                      </div>
+                    )}
+                    
+                    {processingStats && (
+                      <div className="mt-3">
+                        <div className="flex justify-between text-xs text-blue-600 mb-1">
+                          <span>Progress</span>
+                          <span>{processingStats.processed} / {processingStats.total}</span>
+                        </div>
+                        <div className="w-full bg-blue-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                            style={{ width: `${(processingStats.processed / processingStats.total) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Enhanced Error Display */}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center mb-2">
+                      <AlertCircle className="w-4 h-4 text-red-600 mr-2" />
+                      <h4 className="text-sm font-medium text-red-900">Error Details</h4>
+                    </div>
+                    <div className="text-sm text-red-800 mb-2">{error}</div>
+                    <div className="text-xs text-red-600">
+                      <strong>Suggestions:</strong>
+                      <ul className="mt-1 ml-4 list-disc">
+                        <li>Check database connection and permissions</li>
+                        <li>Verify source collection exists and contains data</li>
+                        <li>Ensure target collection name is valid</li>
+                        <li>Try refreshing the page and attempting again</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
                 <div className="flex space-x-2">
                   <button
                     onClick={previewNormalizedStructure}
@@ -372,9 +495,11 @@ const Phase2: React.FC = () => {
                 </h3>
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <div className="text-blue-800 font-medium">{previewData.message}</div>
-                  {previewData.total_statutes && (
+                  {(previewData.total_statutes || previewData.unique_statutes_found) && (
                     <div className="mt-2 text-sm text-blue-700">
-                      Total statutes: {previewData.total_statutes.toLocaleString()}
+                      {previewData.total_statutes && `Total statutes: ${previewData.total_statutes.toLocaleString()}`}
+                      {previewData.unique_statutes_found && `Unique statutes found: ${previewData.unique_statutes_found.toLocaleString()}`}
+                      {previewData.total_raw_documents && ` (from ${previewData.total_raw_documents.toLocaleString()} raw documents)`}
                     </div>
                   )}
                   {previewData.preview_data && previewData.preview_data.length > 0 && (
@@ -383,10 +508,27 @@ const Phase2: React.FC = () => {
                       <div className="space-y-2">
                         {previewData.preview_data.map((statute: any, index: number) => (
                           <div key={index} className="bg-white p-3 rounded border">
-                            <div className="font-medium text-blue-900">{statute.Statute_Name}</div>
-                            <div className="text-sm text-blue-700">
-                              {statute.Sections?.length || 0} sections
+                            <div className="font-medium text-blue-900">
+                              {statute.normalized_name || statute.statute_name || statute.Statute_Name}
                             </div>
+                            {statute.original_name && statute.original_name !== statute.normalized_name && (
+                              <div className="text-xs text-gray-500 mb-1">
+                                Original: {statute.original_name}
+                              </div>
+                            )}
+                            <div className="text-sm text-blue-700">
+                              {statute.section_count || statute.Sections?.length || 0} sections
+                            </div>
+                            {statute.sections_preview && statute.sections_preview.length > 0 && (
+                              <div className="mt-2 text-xs text-gray-600">
+                                <div className="font-medium">Sample sections:</div>
+                                {statute.sections_preview.slice(0, 3).map((s: any, idx: number) => (
+                                  <div key={idx} className="ml-2">
+                                    • {s.section_number || s.section_type}: {s.definition || s.content_preview || ''}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -428,20 +570,8 @@ const Phase2: React.FC = () => {
       case 'statute-names':
         return <StatuteNameNormalizer config={config} />;
 
-      case 'structure-cleaner':
-        return <StructureCleaner config={config} />;
-
-      case 'sorting':
-        return <SortingInterface config={config} />;
-
-      case 'progress':
-        return <ProgressTracker config={config} />;
-
       case 'results':
         return <ResultsPreview config={config} />;
-
-      case 'history':
-        return <NormalizationHistory config={config} />;
 
       default:
         return null;

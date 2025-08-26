@@ -1,0 +1,43 @@
+{
+  "mongo_uri": "mongodb://localhost:27017",
+  "source_db": "Batch-Statute-Versioned",
+  "source_collection": "batch10",
+  "target_db": "Batch-Section-Split",
+  "target_collection": "batch10",
+  "azure_api_key": "EkkatBw5ktWZPOs3unXeiH5lNAKpMAYOYJqQuaOpiAGjDHDY4xZUJQQJ99BGACYeBjFXJ3w3AAAAACOGtZUY",
+  "azure_endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
+  "gpt_model": "gpt-4o",
+  "azure_api_version": "2024-11-01-preview",
+  "processing": {
+    "batch_size": 100,
+    "use_gpt_analysis": true,
+    "complexity_threshold": 0.7,
+    "max_content_length": 1000,
+    "section_patterns": {
+      "definition": ["definition", "definitions", "interpretation", "meaning"],
+      "application": ["application", "applicable", "scope", "extent"],
+      "penalty": ["penalty", "punishment", "fine", "imprisonment", "offence"],
+      "procedure": ["procedure", "process", "manner", "method"],
+      "authority": ["authority", "power", "jurisdiction", "competent"],
+      "repeal": ["repeal", "amendment", "modification", "substitution"]
+    }
+  },
+  "ui": {
+    "auto_refresh_interval": 1000,
+    "max_log_lines": 1000,
+    "window_size": "1200x800",
+    "theme": "default"
+  },
+  "export": {
+    "save_metadata": true,
+    "metadata_format": "json",
+    "include_samples": true,
+    "max_sample_count": 10
+  },
+  "logging": {
+    "level": "INFO",
+    "file_output": true,
+    "console_output": true,
+    "max_file_size": "10MB"
+  }
+} 

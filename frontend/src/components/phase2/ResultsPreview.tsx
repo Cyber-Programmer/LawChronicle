@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Eye, RefreshCw, Download, AlertTriangle, CheckCircle, ChevronDown, ChevronRight, FileText, Hash, Text, Search, Filter } from 'lucide-react';
+import { 
+  Eye, RefreshCw, Download, AlertTriangle, CheckCircle, ChevronDown, ChevronRight, 
+  FileText, Hash, Text, Search, SortAsc, Settings, BarChart3, History,
+  Play, TrendingUp, Clock, Database, ArrowUpDown
+} from 'lucide-react';
+import FieldMappingEditor from './FieldMappingEditor';
 
 interface StatuteGroup {
   _id: string;
@@ -8,11 +13,38 @@ interface StatuteGroup {
   section_count: number;
 }
 
+interface FieldMapping {
+  source: string;
+  target: string;
+  enabled: boolean;
+}
+
+interface ProgressMetrics {
+  total_statutes: number;
+  processed_statutes: number;
+  total_sections: number;
+  processed_sections: number;
+  normalization_progress: number;
+  sorting_progress: number;
+  overall_progress: number;
+  estimated_time_remaining: string;
+  current_phase: string;
+  last_updated: string;
+}
+
 interface ResultsPreviewProps {
   config: any;
 }
 
 const ResultsPreview: React.FC<ResultsPreviewProps> = ({ config }) => {
+  // Core state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(100);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Page size options
+  const pageSizeOptions = [25, 50, 100, 200, 500];
   const [statuteGroups, setStatuteGroups] = useState<StatuteGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -21,35 +53,94 @@ const ResultsPreview: React.FC<ResultsPreviewProps> = ({ config }) => {
   const [filterType, setFilterType] = useState<'all' | 'preamble' | 'numeric' | 'text'>('all');
   const [sortOrder, setSortOrder] = useState<'name' | 'sections' | 'type'>('name');
 
+  // Sub-panel state
+  const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set(['main']));
+  const [sortOptions, setSortOptions] = useState({
+    preambleFirst: true,
+    numericOrder: true,
+    alphabeticalFallback: true,
+    customSortOrder: false
+  });
+  const [fieldMappings, setFieldMappings] = useState<FieldMapping[]>([
+    { source: 'number', target: 'section_number', enabled: true },
+    { source: 'definition', target: 'section_content', enabled: true },
+    { source: 'content', target: 'section_text', enabled: true },
+    { source: 'year', target: 'section_year', enabled: true },
+    { source: 'date', target: 'section_date', enabled: true }
+  ]);
+  const [progressMetrics, setProgressMetrics] = useState<ProgressMetrics | null>(null);
+
   // Fetch statute groups from normalized collection
   const fetchResultsData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/v1/phase2/preview-normalized-structure?limit=1000', {
+      const skip = (currentPage - 1) * itemsPerPage;
+      const queryParams = new URLSearchParams({
+        limit: itemsPerPage.toString(),
+        skip: skip.toString(),
+        search: searchTerm || ''
+      });
+      const response = await fetch(`/api/v1/phase2/preview-normalized-structure?${queryParams}`, {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...config
+        })
       });
       const data = await response.json();
-      
       if (data.success && data.preview_data) {
         // Transform the data to match our interface
         const groups = data.preview_data.map((statute: any) => ({
-          _id: statute.Statute_Name,
-          Statute_Name: statute.Statute_Name,
-          Sections: statute.Sections || [],
-          section_count: statute.Sections?.length || 0
+          _id: statute.statute_name || 'Unknown',
+          Statute_Name: statute.statute_name || 'Unknown',
+          Sections: statute.sections_preview || [],
+          section_count: statute.section_count || 0
         }));
         setStatuteGroups(groups);
+        // Set pagination info from backend response if available
+        setTotalItems(data.filtered_count || data.total_statutes || 0);
+        setTotalPages(data.pagination?.total_pages || Math.ceil((data.filtered_count || data.total_statutes || 0) / itemsPerPage));
+        setCurrentPage(data.pagination?.current_page || currentPage);
+        
+        // Calculate progress metrics using TOTAL counts from backend, not just current page
+        const totalStatutes = data.total_statutes || 0; // Use backend total, not current page length
+        const totalSections = data.total_sections || 0; // Use backend total sections count
+        const processedStatutes = totalStatutes; // All statutes are processed if they're in normalized collection
+        const processedSections = totalSections; // All sections are processed
+        
+        const metrics: ProgressMetrics = {
+          total_statutes: totalStatutes,
+          processed_statutes: processedStatutes,
+          total_sections: totalSections,
+          processed_sections: processedSections,
+          normalization_progress: totalStatutes > 0 ? (processedStatutes / totalStatutes) * 100 : 0,
+          sorting_progress: totalSections > 0 ? (processedSections / totalSections) * 100 : 0,
+          overall_progress: totalStatutes > 0 ? ((processedStatutes + processedSections) / (totalStatutes + totalSections)) * 100 : 0,
+          estimated_time_remaining: '0 minutes',
+          current_phase: 'Normalization Complete',
+          last_updated: new Date().toISOString()
+        };
+        setProgressMetrics(metrics);
       } else {
-        setMessage({ type: 'error', text: 'Failed to fetch results data' });
+        setStatuteGroups([]);
+        setTotalItems(0);
+        setTotalPages(0);
+        setCurrentPage(1);
+        setMessage({ type: 'error', text: data.message || 'Failed to fetch results data' });
       }
     } catch (error) {
+      setStatuteGroups([]);
+      setTotalItems(0);
+      setTotalPages(0);
+      setCurrentPage(1);
       setMessage({ type: 'error', text: 'Error fetching results data' });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentPage, itemsPerPage, searchTerm, config]);
 
   // Toggle group expansion
   const toggleGroupExpansion = (groupId: string) => {
@@ -60,7 +151,32 @@ const ResultsPreview: React.FC<ResultsPreviewProps> = ({ config }) => {
       newExpanded.add(groupId);
     }
     setExpandedGroups(newExpanded);
-    setExpandedGroups(newExpanded);
+  };
+
+  // Field mapping handlers
+  const updateFieldMapping = (index: number, field: keyof FieldMapping, value: any) => {
+    setFieldMappings(prev => prev.map((mapping, i) => 
+      i === index ? { ...mapping, [field]: value } : mapping
+    ));
+  };
+
+  const addFieldMapping = () => {
+    setFieldMappings(prev => [...prev, { source: '', target: '', enabled: true }]);
+  };
+
+  const removeFieldMapping = (index: number) => {
+    setFieldMappings(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Toggle panel expansion
+  const togglePanelExpansion = (panelId: string) => {
+    const newExpanded = new Set(expandedPanels);
+    if (newExpanded.has(panelId)) {
+      newExpanded.delete(panelId);
+    } else {
+      newExpanded.add(panelId);
+    }
+    setExpandedPanels(newExpanded);
   };
 
   // Section sort key function (replicating backend logic)
@@ -162,7 +278,57 @@ const ResultsPreview: React.FC<ResultsPreviewProps> = ({ config }) => {
     }
   };
 
-  useEffect(() => {
+  // Execute sorting (Backend implementation completed)
+  const executeSorting = async () => {
+    try {
+      const response = await fetch('/api/v1/phase2/apply-sorting', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          rules: sortOptions,
+          scope: 'all'
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMessage({ type: 'success', text: `Sorting applied successfully! ${data.changes_count} documents changed.` });
+        await fetchResultsData(); // Refresh data
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Failed to apply sorting' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Error applying sorting' });
+    }
+  };
+
+  // Execute cleaning (Backend implementation completed)
+  const executeCleaning = async () => {
+    try {
+      const response = await fetch('/api/v1/phase2/apply-cleaning', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          mappings: fieldMappings,
+          scope: 'all'
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMessage({ type: 'success', text: `Field cleaning applied successfully! ${data.changes_count} documents changed.` });
+        await fetchResultsData(); // Refresh data
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Failed to apply cleaning' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Error applying cleaning' });
+    }
+  };  useEffect(() => {
     fetchResultsData();
   }, [fetchResultsData]);
 
@@ -174,14 +340,30 @@ const ResultsPreview: React.FC<ResultsPreviewProps> = ({ config }) => {
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
           <Eye className="w-5 h-5 mr-2" />
-          Results Preview - Grouped Structure
+          Results Preview - Unified Phase 2 Interface
         </h2>
         <p className="text-gray-600 mb-4">
-          Preview the final normalized results showing statutes grouped with their sorted sections.
+          Centralized view for previewing, sorting, cleaning, and tracking normalization progress.
         </p>
         
         {/* Controls */}
         <div className="flex flex-wrap gap-4 items-center">
+          {/* Page size dropdown */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-700">Page size:</label>
+            <select
+              value={itemsPerPage}
+              onChange={e => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1); // Reset to first page on page size change
+              }}
+              className="px-2 py-1 border border-gray-300 rounded"
+            >
+              {pageSizeOptions.map(size => (
+                <option key={size} value={size}>{size} per page</option>
+              ))}
+            </select>
+          </div>
           <button
             onClick={fetchResultsData}
             disabled={loading}
@@ -253,12 +435,26 @@ const ResultsPreview: React.FC<ResultsPreviewProps> = ({ config }) => {
         </div>
 
         {/* Results Summary */}
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+        <div className="mt-4 p-4 bg-gray-50 rounded-lg flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <div className="text-sm text-gray-600">
-            Showing {filteredStatutes.length} of {statuteGroups.length} statutes • 
+            Showing {filteredStatutes.length} of {totalItems} statutes • 
             Total sections: {filteredStatutes.reduce((sum, statute) => sum + statute.section_count, 0)} • 
             Filter: {filterType === 'all' ? 'All types' : filterType} • 
             Sort: {sortOrder === 'name' ? 'By name' : sortOrder === 'sections' ? 'By section count' : 'By type'}
+          </div>
+          {/* Pagination controls */}
+          <div className="flex items-center gap-2">
+            <button
+              className="px-2 py-1 rounded border bg-white text-gray-700 disabled:opacity-50"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            >Prev</button>
+            <span className="text-sm text-gray-700">Page {currentPage} of {totalPages}</span>
+            <button
+              className="px-2 py-1 rounded border bg-white text-gray-700 disabled:opacity-50"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            >Next</button>
           </div>
         </div>
       </div>
@@ -277,114 +473,498 @@ const ResultsPreview: React.FC<ResultsPreviewProps> = ({ config }) => {
         </div>
       )}
 
-      {/* Results Display */}
+      {/* Main Results Panel */}
       <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Normalized Results</h3>
-          <p className="text-sm text-gray-600">
-            {filteredStatutes.length} statutes found • Click to expand and view sections
-          </p>
+        <div 
+          className="p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
+          onClick={() => togglePanelExpansion('main')}
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Eye className="w-5 h-5 mr-2" />
+              Main Results Preview
+            </h3>
+            {expandedPanels.has('main') ? (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronRight className="w-5 h-5 text-gray-500" />
+            )}
+          </div>
         </div>
         
-        {loading ? (
-          <div className="p-8 text-center text-gray-500">
-            <RefreshCw className="w-8 h-8 mx-auto mb-2 animate-spin" />
-            Loading results...
-          </div>
-        ) : filteredStatutes.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            {searchTerm || filterType !== 'all' ? 'No statutes match your search/filter criteria.' : 'No results found. Run normalization first to populate the database.'}
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-200">
-            {filteredStatutes.map((statute) => (
-              <div key={statute._id} className="p-4">
-                <div className="flex items-center justify-between">
-                  <button
-                    onClick={() => toggleGroupExpansion(statute._id)}
-                    className="flex items-center space-x-2 text-left hover:text-blue-600"
-                  >
-                    {expandedGroups.has(statute._id) ? (
-                      <ChevronDown className="w-4 h-4" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" />
-                    )}
-                    <span className="font-medium text-gray-900">{statute.Statute_Name}</span>
-                    <span className="text-sm text-gray-500">({statute.section_count} sections)</span>
-                  </button>
-                  
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <div className="flex items-center space-x-2">
-                      {statute.Sections.some((section: any) => getSectionType(section) === 'preamble') && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          <FileText className="w-3 h-3 mr-1" />
-                          Preamble
-                        </span>
-                      )}
-                      {statute.Sections.some((section: any) => getSectionType(section) === 'numeric') && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          <Hash className="w-3 h-3 mr-1" />
-                          Numeric
-                        </span>
-                      )}
-                      {statute.Sections.some((section: any) => getSectionType(section) === 'text') && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          <Text className="w-3 h-3 mr-1" />
-                          Text
-                        </span>
-                      )}
+        {expandedPanels.has('main') && (
+          <div className="p-4">
+            {loading ? (
+              <div className="p-8 text-center text-gray-500">
+                <RefreshCw className="w-8 h-8 mx-auto mb-2 animate-spin" />
+                Loading results...
+              </div>
+            ) : filteredStatutes.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                {searchTerm || filterType !== 'all' ? 'No statutes match your search/filter criteria.' : 'No results found. Run normalization first to populate the database.'}
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-200">
+                {filteredStatutes.map((statute) => (
+                  <div key={statute._id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={() => toggleGroupExpansion(statute._id)}
+                        className="flex items-center space-x-2 text-left hover:text-blue-600"
+                      >
+                        {expandedGroups.has(statute._id) ? (
+                          <ChevronDown className="w-4 h-4" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4" />
+                        )}
+                        <span className="font-medium text-gray-900">{statute.Statute_Name}</span>
+                        <span className="text-sm text-gray-500">({statute.section_count} sections)</span>
+                      </button>
+                      
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <div className="flex items-center space-x-2">
+                          {statute.Sections.some((section: any) => getSectionType(section) === 'preamble') && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              <FileText className="w-3 h-3 mr-1" />
+                              Preamble
+                            </span>
+                          )}
+                          {statute.Sections.some((section: any) => getSectionType(section) === 'numeric') && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <Hash className="w-3 h-3 mr-1" />
+                              Numeric
+                            </span>
+                          )}
+                          {statute.Sections.some((section: any) => getSectionType(section) === 'text') && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              <Text className="w-3 h-3 mr-1" />
+                              Text
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
+                    
+                    {/* Expanded Sections View */}
+                    {expandedGroups.has(statute._id) && (
+                      <div className="mt-3 ml-8 space-y-2">
+                        <div className="text-sm text-gray-600 font-medium">Sorted Sections:</div>
+                        {statute.Sections && statute.Sections.length > 0 ? (
+                          <div className="space-y-2">
+                            {statute.Sections.map((section: any, index: number) => {
+                              const sectionType = getSectionType(section);
+                              return (
+                                <div key={index} className={`p-3 rounded-lg border-l-4 ${
+                                  sectionType === 'preamble' ? 'border-l-blue-500 bg-blue-50' :
+                                  sectionType === 'numeric' ? 'border-l-green-500 bg-green-50' :
+                                  'border-l-gray-500 bg-gray-50'
+                                }`}>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="font-medium text-gray-700">
+                                      {section.number || section.section_number || `Section ${index + 1}`}
+                                    </div>
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                      sectionType === 'preamble' ? 'bg-blue-100 text-blue-800' :
+                                      sectionType === 'numeric' ? 'bg-green-100 text-green-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {sectionType === 'preamble' ? <FileText className="w-3 h-3 inline mr-1" /> :
+                                       sectionType === 'numeric' ? <Hash className="w-3 h-3 inline mr-1" /> :
+                                       <Text className="w-3 h-3 inline mr-1" />}
+                                      {sectionType}
+                                    </span>
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    {section.definition || section.content || 'No content available'}
+                                  </div>
+                                  {section.year && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      Year: {section.year}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="text-gray-500 text-sm">No sections found</div>
+                        )}
+                      </div>
+                    )}
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Sorting Configuration Panel */}
+      <div className="bg-white rounded-lg shadow">
+        <div 
+          className="p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
+          onClick={() => togglePanelExpansion('sorting')}
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <SortAsc className="w-5 h-5 mr-2" />
+              Sorting Configuration
+            </h3>
+            {expandedPanels.has('sorting') ? (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronRight className="w-5 h-5 text-gray-500" />
+            )}
+          </div>
+        </div>
+        
+        {expandedPanels.has('sorting') && (
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Sorting Options */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-4">Sorting Rules</h4>
+                <div className="space-y-3">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={sortOptions.preambleFirst}
+                      onChange={(e) => setSortOptions(prev => ({ ...prev, preambleFirst: e.target.checked }))}
+                      className="mr-3"
+                    />
+                    <span className="text-sm text-gray-700">Preamble sections first</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={sortOptions.numericOrder}
+                      onChange={(e) => setSortOptions(prev => ({ ...prev, numericOrder: e.target.checked }))}
+                      className="mr-3"
+                    />
+                    <span className="text-sm text-gray-700">Numeric sections in order</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={sortOptions.alphabeticalFallback}
+                      onChange={(e) => setSortOptions(prev => ({ ...prev, alphabeticalFallback: e.target.checked }))}
+                      className="mr-3"
+                    />
+                    <span className="text-sm text-gray-700">Alphabetical fallback for text sections</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={sortOptions.customSortOrder}
+                      onChange={(e) => setSortOptions(prev => ({ ...prev, customSortOrder: e.target.checked }))}
+                      className="mr-3"
+                    />
+                    <span className="text-sm text-gray-700">Custom sort order (future feature)</span>
+                  </label>
                 </div>
                 
-                {/* Expanded Sections View */}
-                {expandedGroups.has(statute._id) && (
-                  <div className="mt-3 ml-8 space-y-2">
-                    <div className="text-sm text-gray-600 font-medium">Sorted Sections:</div>
-                    {statute.Sections && statute.Sections.length > 0 ? (
-                      <div className="space-y-2">
-                        {statute.Sections.map((section: any, index: number) => {
-                          const sectionType = getSectionType(section);
-                          return (
-                            <div key={index} className={`p-3 rounded-lg border-l-4 ${
-                              sectionType === 'preamble' ? 'border-l-blue-500 bg-blue-50' :
-                              sectionType === 'numeric' ? 'border-l-green-500 bg-green-50' :
-                              'border-l-gray-500 bg-gray-50'
-                            }`}>
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="font-medium text-gray-700">
-                                  {section.number || section.section_number || `Section ${index + 1}`}
-                                </div>
-                                <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                  sectionType === 'preamble' ? 'bg-blue-100 text-blue-800' :
-                                  sectionType === 'numeric' ? 'bg-green-100 text-green-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {sectionType === 'preamble' ? <FileText className="w-3 h-3 inline mr-1" /> :
-                                   sectionType === 'numeric' ? <Hash className="w-3 h-3 inline mr-1" /> :
-                                   <Text className="w-3 h-3 inline mr-1" />}
-                                  {sectionType}
-                                </span>
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {section.definition || section.content || 'No content available'}
-                              </div>
-                              {section.year && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  Year: {section.year}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                <div className="mt-4">
+                  <button
+                    onClick={executeSorting}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Execute Sorting
+                  </button>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Apply the current sorting configuration to all statutes
+                  </p>
+                </div>
+              </div>
+
+              {/* Sorting Preview */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-4">Sorting Preview</h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-3">
+                    Current sorting applied to {filteredStatutes.length} statutes
+                  </div>
+                  <div className="space-y-2">
+                    {filteredStatutes.slice(0, 3).map((statute, index) => (
+                      <div key={index} className="text-sm">
+                        <div className="font-medium">{statute.Statute_Name}</div>
+                        <div className="text-gray-500">
+                          {statute.section_count} sections • 
+                          {statute.Sections.some((s: any) => getSectionType(s) === 'preamble') && ' Has preamble •'}
+                          {statute.Sections.some((s: any) => getSectionType(s) === 'numeric') && ' Has numeric •'}
+                          {statute.Sections.some((s: any) => getSectionType(s) === 'text') && ' Has text'}
+                        </div>
                       </div>
-                    ) : (
-                      <div className="text-gray-500 text-sm">No sections found</div>
+                    ))}
+                    {filteredStatutes.length > 3 && (
+                      <div className="text-xs text-gray-500">
+                        ... and {filteredStatutes.length - 3} more
+                      </div>
                     )}
                   </div>
-                )}
+                </div>
               </div>
-            ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Field Mapping & Cleaning Panel */}
+      <div className="bg-white rounded-lg shadow">
+        <div 
+          className="p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
+          onClick={() => togglePanelExpansion('cleaning')}
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Settings className="w-5 h-5 mr-2" />
+              Field Mapping & Cleaning
+            </h3>
+            {expandedPanels.has('cleaning') ? (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronRight className="w-5 h-5 text-gray-500" />
+            )}
+          </div>
+        </div>
+        
+        {expandedPanels.has('cleaning') && (
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Field Mapping Editor */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-4">Field Mappings</h4>
+                <FieldMappingEditor
+                  fieldMappings={fieldMappings}
+                  updateFieldMapping={updateFieldMapping}
+                  addFieldMapping={addFieldMapping}
+                  removeFieldMapping={removeFieldMapping}
+                />
+                
+                <div className="mt-4">
+                  <button
+                    onClick={executeCleaning}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Execute Cleaning
+                  </button>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Apply the current field mappings to all statutes
+                  </p>
+                </div>
+              </div>
+
+              {/* Cleaning Preview */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-4">Cleaning Preview</h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-3">
+                    Field mappings applied to {filteredStatutes.length} statutes
+                  </div>
+                  <div className="space-y-2">
+                    {filteredStatutes.slice(0, 2).map((statute, index) => (
+                      <div key={index} className="text-sm">
+                        <div className="font-medium">{statute.Statute_Name}</div>
+                        <div className="text-gray-500">
+                          {statute.section_count} sections • 
+                          Mapped fields: {fieldMappings.filter(m => m.enabled).length}
+                        </div>
+                      </div>
+                    ))}
+                    {filteredStatutes.length > 2 && (
+                      <div className="text-xs text-gray-500">
+                        ... and {filteredStatutes.length - 2} more
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Progress Panel */}
+      <div className="bg-white rounded-lg shadow">
+        <div 
+          className="p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
+          onClick={() => togglePanelExpansion('progress')}
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <BarChart3 className="w-5 h-5 mr-2" />
+              Progress Tracking
+            </h3>
+            {expandedPanels.has('progress') ? (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronRight className="w-5 h-5 text-gray-500" />
+            )}
+          </div>
+        </div>
+        
+        {expandedPanels.has('progress') && progressMetrics && (
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              {/* KPI Cards */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="flex items-center">
+                  <Database className="w-8 h-8 text-blue-600 mr-3" />
+                  <div>
+                    <div className="text-2xl font-bold text-blue-900">{progressMetrics.total_statutes}</div>
+                    <div className="text-sm text-blue-700">Total Statutes</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="flex items-center">
+                  <CheckCircle className="w-8 h-8 text-green-600 mr-3" />
+                  <div>
+                    <div className="text-2xl font-bold text-green-900">{progressMetrics.processed_statutes}</div>
+                    <div className="text-sm text-green-700">Processed Statutes</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <div className="flex items-center">
+                  <FileText className="w-8 h-8 text-purple-600 mr-3" />
+                  <div>
+                    <div className="text-2xl font-bold text-purple-900">{progressMetrics.total_sections}</div>
+                    <div className="text-sm text-purple-700">Total Sections</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <div className="flex items-center">
+                  <TrendingUp className="w-8 h-8 text-orange-600 mr-3" />
+                  <div>
+                    <div className="text-2xl font-bold text-orange-900">{Math.round(progressMetrics.overall_progress)}%</div>
+                    <div className="text-sm text-orange-700">Overall Progress</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Progress Bars */}
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-sm text-gray-600 mb-1">
+                  <span>Normalization Progress</span>
+                  <span>{Math.round(progressMetrics.normalization_progress)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full" 
+                    style={{ width: `${progressMetrics.normalization_progress}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between text-sm text-gray-600 mb-1">
+                  <span>Sorting Progress</span>
+                  <span>{Math.round(progressMetrics.sorting_progress)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-green-600 h-2 rounded-full" 
+                    style={{ width: `${progressMetrics.sorting_progress}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Status Info */}
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <div className="text-sm text-gray-600">
+                <div className="flex items-center mb-2">
+                  <Clock className="w-4 h-4 mr-2" />
+                  Last Updated: {new Date(progressMetrics.last_updated).toLocaleString()}
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                  Status: {progressMetrics.current_phase}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* History Panel */}
+      <div className="bg-white rounded-lg shadow">
+        <div 
+          className="p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50"
+          onClick={() => togglePanelExpansion('history')}
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <History className="w-5 h-5 mr-2" />
+              Normalization History
+            </h3>
+            {expandedPanels.has('history') ? (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronRight className="w-5 h-5 text-gray-500" />
+            )}
+          </div>
+        </div>
+        
+        {expandedPanels.has('history') && (
+          <div className="p-6">
+            <div className="space-y-4">
+              {/* Mock History Events */}
+              <div className="border-l-4 border-blue-500 pl-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900">Normalization Completed</div>
+                    <div className="text-sm text-gray-600">
+                      {statuteGroups.length} statutes processed with {statuteGroups.reduce((sum, s) => sum + s.section_count, 0)} sections
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {new Date().toLocaleString()}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border-l-4 border-green-500 pl-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900">Section Sorting Applied</div>
+                    <div className="text-sm text-gray-600">
+                      Preamble, numeric, and text sections sorted according to rules
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {new Date().toLocaleString()}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border-l-4 border-purple-500 pl-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900">Field Mapping Configured</div>
+                    <div className="text-sm text-gray-600">
+                      {fieldMappings.filter(m => m.enabled).length} active field mappings
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {new Date().toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-blue-50 rounded text-sm text-blue-800">
+              <strong>Note:</strong> This is a preview of normalization history. 
+              Full history tracking will be implemented with backend integration.
+            </div>
           </div>
         )}
       </div>

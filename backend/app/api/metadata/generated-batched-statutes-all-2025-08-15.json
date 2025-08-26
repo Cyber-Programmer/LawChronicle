@@ -1,0 +1,87 @@
+{
+  "total_statutes_processed": 6799,
+  "splits_created": 10,
+  "database_distribution": {
+    "statutes_per_database": {
+      "batch_3": 680,
+      "batch_7": 680,
+      "batch_1": 680,
+      "batch_10": 679,
+      "batch_6": 680,
+      "batch_2": 680,
+      "batch_4": 680,
+      "batch_9": 680,
+      "batch_8": 680,
+      "batch_5": 680
+    },
+    "sections_per_database": {
+      "batch_3": 1330,
+      "batch_7": 945,
+      "batch_1": 1107,
+      "batch_10": 3238,
+      "batch_6": 1515,
+      "batch_2": 1897,
+      "batch_4": 1155,
+      "batch_9": 1744,
+      "batch_8": 1554,
+      "batch_5": 986
+    },
+    "database_sizes": {
+      "batch_3": {
+        "statutes": 680,
+        "sections": 1330,
+        "average_sections_per_statute": 1.9558823529411764
+      },
+      "batch_7": {
+        "statutes": 680,
+        "sections": 945,
+        "average_sections_per_statute": 1.3897058823529411
+      },
+      "batch_1": {
+        "statutes": 680,
+        "sections": 1107,
+        "average_sections_per_statute": 1.6279411764705882
+      },
+      "batch_10": {
+        "statutes": 679,
+        "sections": 3238,
+        "average_sections_per_statute": 4.768777614138439
+      },
+      "batch_6": {
+        "statutes": 680,
+        "sections": 1515,
+        "average_sections_per_statute": 2.2279411764705883
+      },
+      "batch_2": {
+        "statutes": 680,
+        "sections": 1897,
+        "average_sections_per_statute": 2.789705882352941
+      },
+      "batch_4": {
+        "statutes": 680,
+        "sections": 1155,
+        "average_sections_per_statute": 1.6985294117647058
+      },
+      "batch_9": {
+        "statutes": 680,
+        "sections": 1744,
+        "average_sections_per_statute": 2.5647058823529414
+      },
+      "batch_8": {
+        "statutes": 680,
+        "sections": 1554,
+        "average_sections_per_statute": 2.2852941176470587
+      },
+      "batch_5": {
+        "statutes": 680,
+        "sections": 986,
+        "average_sections_per_statute": 1.45
+      }
+    }
+  },
+  "script": "api_phase3_metadata_generation",
+  "db_name": "Batched-Statutes",
+  "collection": "batch_",
+  "date": "2025-08-15",
+  "timestamp": "2025-08-15T14:31:58.966005"
+}

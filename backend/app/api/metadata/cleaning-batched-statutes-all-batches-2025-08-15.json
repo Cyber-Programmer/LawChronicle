@@ -1,0 +1,145 @@
+{
+  "operation_type": "batch_cleaning",
+  "total_statutes_processed": 6799,
+  "processing_details": {
+    "processing_date": "2025-08-15",
+    "processing_timestamp": "2025-08-15T15:15:34.938965",
+    "script": "api_phase3_batch_cleaning",
+    "configuration": {
+      "target_database": "Batched-Statutes",
+      "target_collection_prefix": "batch_",
+      "batch_numbers": null,
+      "clean_all": true,
+      "skip_preamble_dedup": true
+    }
+  },
+  "cleaning_stats": {
+    "total_cleaned": 6799,
+    "total_unchanged": 0
+  },
+  "batch_details": {
+    "batch_3": {
+      "processed": 680,
+      "cleaned": 680,
+      "unchanged": 0
+    },
+    "batch_7": {
+      "processed": 680,
+      "cleaned": 680,
+      "unchanged": 0
+    },
+    "batch_1": {
+      "processed": 680,
+      "cleaned": 680,
+      "unchanged": 0
+    },
+    "batch_10": {
+      "processed": 679,
+      "cleaned": 679,
+      "unchanged": 0
+    },
+    "batch_6": {
+      "processed": 680,
+      "cleaned": 680,
+      "unchanged": 0
+    },
+    "batch_2": {
+      "processed": 680,
+      "cleaned": 680,
+      "unchanged": 0
+    },
+    "batch_4": {
+      "processed": 680,
+      "cleaned": 680,
+      "unchanged": 0
+    },
+    "batch_9": {
+      "processed": 680,
+      "cleaned": 680,
+      "unchanged": 0
+    },
+    "batch_8": {
+      "processed": 680,
+      "cleaned": 680,
+      "unchanged": 0
+    },
+    "batch_5": {
+      "processed": 680,
+      "cleaned": 680,
+      "unchanged": 0
+    }
+  },
+  "field_modifications": {
+    "summary": {
+      "total_fields_processed": 6799,
+      "fields_dropped": 8,
+      "fields_moved": 0
+    },
+    "detailed_changes": [
+      {
+        "field_name": "Date",
+        "change_type": "dropped",
+        "original_position": 19,
+        "new_position": null,
+        "doc_id": "689f056342d7d99cf9e6ffd1",
+        "batch": "batch_3"
+      },
+      {
+        "field_name": "Date",
+        "change_type": "dropped",
+        "original_position": 24,
+        "new_position": null,
+        "doc_id": "689f056d42d7d99cf9e71324",
+        "batch": "batch_10"
+      },
+      {
+        "field_name": "Date",
+        "change_type": "dropped",
+        "original_position": 46,
+        "new_position": null,
+        "doc_id": "689f056d42d7d99cf9e71328",
+        "batch": "batch_10"
+      },
+      {
+        "field_name": "Date",
+        "change_type": "dropped",
+        "original_position": 29,
+        "new_position": null,
+        "doc_id": "689f056d42d7d99cf9e713cd",
+        "batch": "batch_10"
+      },
+      {
+        "field_name": "Date",
+        "change_type": "dropped",
+        "original_position": 11,
+        "new_position": null,
+        "doc_id": "689f056942d7d99cf9e708e9",
+        "batch": "batch_6"
+      },
+      {
+        "field_name": "Date",
+        "change_type": "dropped",
+        "original_position": 41,
+        "new_position": null,
+        "doc_id": "689f056b42d7d99cf9e70e11",
+        "batch": "batch_8"
+      },
+      {
+        "field_name": "Date",
+        "change_type": "dropped",
+        "original_position": 9,
+        "new_position": null,
+        "doc_id": "689f056b42d7d99cf9e70e5c",
+        "batch": "batch_8"
+      },
+      {
+        "field_name": "Date",
+        "change_type": "dropped",
+        "original_position": 97,
+        "new_position": null,
+        "doc_id": "689f056b42d7d99cf9e70e91",
+        "batch": "batch_8"
+      }
+    ]
+  }
+}

@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
-from ....core.auth import authenticate_user, create_access_token, get_current_user, verify_password, get_password_hash
+import os
+from ....core.auth import create_access_token, get_current_user, verify_password
 from ....core.config import settings
 from shared.types.common import BaseResponse
 
@@ -9,21 +10,31 @@ router = APIRouter()
 
 # For demo purposes - in production, this would be stored in database
 # Using environment variables for better security
-import os
 DEMO_USER = {
     "username": os.getenv("DEMO_USERNAME", "admin"),
-    "password": os.getenv("DEMO_USER_PASSWORD", "admin123")  # We'll hash this at runtime
+    "password": os.getenv("DEMO_USER_PASSWORD", "admin123")  # plaintext for env convenience
 }
+
+# Hash the demo user's password on import so verify endpoints work and tests
+try:
+    from ....core.auth import get_password_hash, verify_password
+    DEMO_USER["hashed_password"] = get_password_hash(DEMO_USER["password"])
+except Exception:
+    DEMO_USER["hashed_password"] = DEMO_USER["password"]
 
 @router.post("/login", response_model=BaseResponse)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """Login endpoint for authentication"""
-    # Simple authentication check
-    if (form_data.username == DEMO_USER["username"] and 
-        form_data.password == DEMO_USER["password"]):
-        user = True
-    else:
-        user = False
+    # Simple authentication check: verify hashed password
+    user = False
+    if form_data.username == DEMO_USER["username"]:
+        try:
+            if verify_password(form_data.password, DEMO_USER.get("hashed_password", DEMO_USER.get("password"))):
+                user = True
+        except Exception:
+            # fallback to raw compare
+            if form_data.password == DEMO_USER.get("password"):
+                user = True
     
     if not user:
         raise HTTPException(
@@ -33,8 +44,10 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         )
     
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
+    # Include demo roles in token payload so role-checked endpoints (like apply) work in demo/local runs
+    demo_roles = DEMO_USER.get("roles") or ["admin"]
     access_token = create_access_token(
-        data={"sub": form_data.username}, expires_delta=access_token_expires
+        data={"sub": form_data.username, "roles": demo_roles}, expires_delta=access_token_expires
     )
     
     return BaseResponse(

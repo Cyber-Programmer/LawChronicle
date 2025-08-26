@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Scissors, Database, FileText, Settings, History, Eye, Play, RotateCcw, Split, Layers } from 'lucide-react';
+import { Scissors, Database, FileText, Settings, History, Eye, Play, RotateCcw, Split, Layers, Loader2, AlertCircle } from 'lucide-react';
 
 // Configuration interface - updated to match CLI flow
 interface Phase3Config {
@@ -28,10 +28,21 @@ const Phase3: React.FC = () => {
   const [status, setStatus] = useState<any>(null);
   const [statistics, setStatistics] = useState<any>(null);
   const [batchPreview, setBatchPreview] = useState<any>(null);
+  const [progressStep, setProgressStep] = useState<string>('');
+  const [progressDetails, setProgressDetails] = useState<string>('');
+  const [processingStats, setProcessingStats] = useState<{processed: number, total: number, operation: string} | null>(null);
+  const [operationError, setOperationError] = useState<string | null>(null);
+  const [prefixError, setPrefixError] = useState<string | null>(null);
   const [history, setHistory] = useState<any>(null);
   const [availableBatches, setAvailableBatches] = useState<any>(null);
+  const [diagnostics, setDiagnostics] = useState<any>(null);
   const [selectedBatches, setSelectedBatches] = useState<number[]>([]);
   const [cleanAllBatches, setCleanAllBatches] = useState(true);
+  const [dryRun, setDryRun] = useState(true);
+  const [validationResults, setValidationResults] = useState<any>(null);
+  const [saveMetadata, setSaveMetadata] = useState<boolean>(true);
+  const [expandedStatutes, setExpandedStatutes] = useState<{[key: string]: boolean}>({});
+  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({});
 
   // Load config from localStorage on mount
   useEffect(() => {
@@ -52,7 +63,31 @@ const Phase3: React.FC = () => {
 
   // Update configuration
   const updateConfig = (updates: Partial<Phase3Config>) => {
-    setConfig(prev => ({ ...prev, ...updates }));
+    const newConfig = { ...config, ...updates };
+    setConfig(newConfig);
+    // Validate prefix
+    if ('target_collection_prefix' in updates) {
+      const v = (updates as any).target_collection_prefix as string;
+      validatePrefix(v);
+    }
+  };
+
+  const validatePrefix = (prefix: string) => {
+    if (!prefix || !prefix.trim()) {
+      setPrefixError('Prefix cannot be empty');
+      return false;
+    }
+    const ok = /^[A-Za-z0-9_-]{1,50}$/.test(prefix.trim());
+    if (!ok) {
+      setPrefixError('Use only letters, numbers, underscore or hyphen (1-50 chars)');
+      return false;
+    }
+    if (prefix.trim().startsWith('$') || prefix.trim().toLowerCase().startsWith('system')) {
+      setPrefixError('Prefix cannot start with "$" or "system"');
+      return false;
+    }
+    setPrefixError(null);
+    return true;
   };
 
   // Reset configuration to defaults
@@ -70,6 +105,19 @@ const Phase3: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching Phase 3 status:', error);
+    }
+  };
+
+  // Refresh status and related data; when on Pakistan tab also refresh available batches
+  const refreshStatus = async () => {
+    await fetchStatus();
+    // If user is on Pakistan validation tab, refresh batch listings so document counts update
+    if (activeTab === 'pakistan-law-validation') {
+      await fetchAvailableBatches();
+    }
+    // If on statistics tab refresh stats as well
+    if (activeTab === 'statistics') {
+      await fetchStatistics();
     }
   };
 
@@ -160,87 +208,227 @@ const Phase3: React.FC = () => {
     }
   };
 
-  // Start section splitting
+  // Start section splitting using modern service endpoint
   const startSectionSplitting = async () => {
     setIsProcessing(true);
+    setOperationError(null);
+    setProgressStep('Initializing section splitting process...');
+    setProgressDetails('Preparing to analyze and split statute sections');
+    setProcessingStats(null);
+    
     try {
+      // Step 1: Prepare request
+      setProgressStep('Preparing section splitting request');
+      setProgressDetails(`Source: ${config.source_database}.${config.source_collection} → Target: ${config.target_database}.${config.target_collection_prefix}*`);
+      
+      // Step 2: Send to the correct endpoint
+      setProgressStep('Connecting to section splitting service');
+      setProgressDetails('Analyzing statute structure and splitting into batches...');
+
       const response = await fetch('/api/v1/phase3/start-section-splitting', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
       });
       
+      // Step 3: Process results
+      setProgressStep('Processing section splitting results');
+      setProgressDetails('Analyzing split sections and organizing data...');
+      
       if (response.ok) {
         const result = await response.json();
-        alert('Section splitting started successfully!');
+        setProgressStep('Section splitting completed successfully!');
+        setProgressDetails(`Successfully created ${result.batches_created || 0} batch collections`);
+        
+        // Show success notification with details
+        const batchCount = result.batches_created || 0;
+        setProcessingStats({
+          processed: batchCount,
+          total: batchCount,
+          operation: 'Section Splitting'
+        });
+        
         fetchStatus();
+        
+        // Clear progress after delay
+        setTimeout(() => {
+          setProgressStep('');
+          setProgressDetails('');
+          setProcessingStats(null);
+        }, 3000);
       } else {
         const error = await response.json();
-        alert(`Error starting section splitting: ${error.detail}`);
+        throw new Error(error.detail || 'Section splitting failed');
       }
     } catch (error) {
-      console.error('Error starting section splitting:', error);
-      alert('Failed to start section splitting');
+      setProgressStep('Error during section splitting');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start section splitting';
+      setProgressDetails(errorMessage);
+      setOperationError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Start field cleaning
+  // Start field cleaning using modern service endpoint
   const startFieldCleaning = async () => {
     setIsProcessing(true);
+    setOperationError(null);
+    setProgressStep('Initializing field cleaning process...');
+    setProgressDetails('Preparing to clean and validate field data');
+    setProcessingStats(null);
+    
     try {
+      // Step 1: Prepare cleaning request (send the Phase3 config)
+      setProgressStep('Preparing field cleaning request');
+      setProgressDetails(`Scheduling cleaning for collections with prefix: ${config.target_collection_prefix}`);
+
+      // Step 2: Schedule cleaning on the backend (background task)
+      setProgressStep('Scheduling field cleaning on server');
+      setProgressDetails('Requesting server to start field cleaning in background...');
+
       const response = await fetch('/api/v1/phase3/start-field-cleaning', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
       });
       
+      // Step 3: Process cleaning results
+      setProgressStep('Processing field cleaning results');
+      setProgressDetails('Validating cleaned data and updating collections...');
+      
       if (response.ok) {
         const result = await response.json();
-        alert('Field cleaning started successfully!');
-        fetchStatus();
+        const batches = result.batches_scheduled || [];
+
+        setProgressStep('Field cleaning scheduled');
+        setProgressDetails(`Cleaning scheduled for ${batches.length} batches. Server is processing in background.`);
+
+        setProcessingStats({
+          processed: batches.length,
+          total: batches.length || 1,
+          operation: 'Field Cleaning'
+        });
+
+  fetchStatus();
+  // Refresh available batches so cleaned flags update immediately
+  fetchAvailableBatches();
+  fetchHistory(); // refresh history to show new metadata
+
+        // Clear progress after short delay but keep status visible
+        setTimeout(() => {
+          setProgressStep('');
+          setProgressDetails('');
+        }, 3000);
       } else {
         const error = await response.json();
-        alert(`Error starting field cleaning: ${error.detail}`);
+        throw new Error(error.detail || 'Field cleaning scheduling failed');
       }
     } catch (error) {
-      console.error('Error starting field cleaning:', error);
-      alert('Failed to start field cleaning');
+      setProgressStep('Error during field cleaning');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start field cleaning';
+      setProgressDetails(errorMessage);
+      setOperationError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Start batch cleaning (new enhanced version)
+  // Start batch cleaning (using service architecture)
   const startBatchCleaning = async () => {
     setIsProcessing(true);
     try {
-      const cleaningConfig = {
+      // Build payload matching the backend BatchCleaningConfig model
+      const payload = {
         target_database: config.target_database,
         target_collection_prefix: config.target_collection_prefix,
         batch_numbers: cleanAllBatches ? null : selectedBatches,
         clean_all: cleanAllBatches
       };
 
+      // Call the dedicated endpoint that schedules cleaning for selected batches
       const response = await fetch('/api/v1/phase3/clean-batches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cleaningConfig)
+        body: JSON.stringify(payload)
       });
-      
+
       if (response.ok) {
         const result = await response.json();
-        alert(`Batch cleaning started successfully for ${result.batches_to_clean.length} batches!`);
-        fetchStatus();
-        fetchHistory(); // Refresh history to show new metadata
+        alert('Batch cleaning started successfully!');
+  // Refresh status and batches so UI reflects scheduled cleaning
+  refreshStatus();
+  fetchHistory();
       } else {
         const error = await response.json();
-        alert(`Error starting batch cleaning: ${error.detail}`);
+        alert(`Error starting batch cleaning: ${error.detail || error.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error starting batch cleaning:', error);
       alert('Failed to start batch cleaning');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+  // Start Pakistan Law Validation
+  const startPakistanLawValidation = async () => {
+    setIsProcessing(true);
+    setValidationResults(null);
+    try {
+      const payload = {
+        target_database: config.target_database,
+        target_collection_prefix: config.target_collection_prefix,
+        batch_numbers: cleanAllBatches ? null : selectedBatches,
+        clean_all: cleanAllBatches
+      };
+  const url = `/api/v1/phase3/validate-pakistan-batches?dry_run=${dryRun}&save_metadata=${saveMetadata}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        const result = await response.json();
+        setValidationResults(result);
+        fetchStatus();
+        fetchHistory();
+      } else {
+        const err = await response.json();
+        alert(`Error during validation: ${err.message || err.detail}`);
+      }
+    } catch (error) {
+      console.error('Error validating Pakistan law batches:', error);
+      alert('Pakistan law validation failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Preview validation metadata
+  const previewValidationMetadata = async () => {
+    setIsProcessing(true);
+    try {
+      const payload = {
+        target_database: config.target_database,
+        target_collection_prefix: config.target_collection_prefix,
+        batch_numbers: cleanAllBatches ? null : selectedBatches,
+        clean_all: cleanAllBatches
+      };
+      const response = await fetch('/api/v1/phase3/preview-validation-metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Metadata Preview:\n\nEstimated Documents: ${result.estimated_documents}\nBatches: ${result.batches_to_process.length}\n\nMetadata structure generated successfully!`);
+      } else {
+        const err = await response.json();
+        alert(`Error previewing metadata: ${err.message || err.detail}`);
+      }
+    } catch (error) {
+      console.error('Error previewing validation metadata:', error);
+      alert('Metadata preview failed');
     } finally {
       setIsProcessing(false);
     }
@@ -253,6 +441,22 @@ const Phase3: React.FC = () => {
         ? prev.filter(n => n !== batchNumber)
         : [...prev, batchNumber]
     );
+  };
+
+  // Toggle statute expansion
+  const toggleStatuteExpansion = (statuteKey: string) => {
+    setExpandedStatutes(prev => ({
+      ...prev,
+      [statuteKey]: !prev[statuteKey]
+    }));
+  };
+
+  // Toggle section expansion
+  const toggleSectionExpansion = (sectionKey: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }));
   };
 
   // Rollback Phase 3
@@ -288,15 +492,23 @@ const Phase3: React.FC = () => {
     fetchStatus();
     fetchStatistics();
   }, []);
+  // Auto-load batches when Pakistan Law Validation tab is active
+  useEffect(() => {
+    if (activeTab === 'pakistan-law-validation') {
+      fetchAvailableBatches();
+    }
+  }, [activeTab]);
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: Database },
     { id: 'section-splitting', name: 'Section Splitting', icon: Split },
     { id: 'field-cleaning', name: 'Field Cleaning', icon: Scissors },
+    { id: 'pakistan-law-validation', name: 'Pakistan Law Validation', icon: FileText },
     { id: 'preview', name: 'Batch Preview', icon: Eye },
     { id: 'statistics', name: 'Statistics', icon: Settings },
     { id: 'history', name: 'History', icon: History }
   ];
+  // Start Pakistan Law Validation (mirrors batch cleaning, but uses different processing_type)
 
   return (
     <div className="space-y-0">
@@ -322,7 +534,7 @@ const Phase3: React.FC = () => {
             Reset to Defaults
           </button>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
           <div>
             <span className="font-medium text-gray-700">Source DB:</span>
             <input
@@ -350,17 +562,20 @@ const Phase3: React.FC = () => {
               className="ml-2 px-2 py-1 border border-gray-300 rounded text-xs w-full"
             />
           </div>
+              <div>
+                <span className="font-medium text-gray-700">Batch Prefix:</span>
+                <input
+                  type="text"
+                  value={config.target_collection_prefix}
+                  onChange={(e) => updateConfig({ target_collection_prefix: e.target.value })}
+                  className="ml-2 px-2 py-1 border border-gray-300 rounded text-xs w-full"
+                />
+                {prefixError && (
+                  <div className="text-xs text-red-600 mt-1">{prefixError}</div>
+                )}
+              </div>
           <div>
-            <span className="font-medium text-gray-700">Batch Prefix:</span>
-            <input
-              type="text"
-              value={config.target_collection_prefix}
-              onChange={(e) => updateConfig({ target_collection_prefix: e.target.value })}
-              className="ml-2 px-2 py-1 border border-gray-300 rounded text-xs w-full"
-            />
-          </div>
-          <div>
-            <span className="font-medium text-gray-700">Batch Size:</span>
+            <span className="font-medium text-gray-700">Number of Batches:</span>
             <input
               type="number"
               value={config.batch_size}
@@ -370,6 +585,7 @@ const Phase3: React.FC = () => {
               max="50"
             />
           </div>
+          {/* AI-enhanced cleaning option hidden while feature is under review for interviews */}
         </div>
       </div>
 
@@ -407,14 +623,21 @@ const Phase3: React.FC = () => {
                   Section Splitting
                 </h3>
                 <p className="text-blue-700 text-sm mb-3">
-                  Split normalized statutes from {config.source_database}.{config.source_collection} into {config.batch_size} batches in {config.target_database}.
+                  Split normalized statutes from {config.source_database}.{config.source_collection} into {config.batch_size} equal batches in {config.target_database}.
                 </p>
                 <button
                   onClick={startSectionSplitting}
                   disabled={isProcessing}
                   className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isProcessing ? 'Processing...' : 'Start Section Splitting'}
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 inline animate-spin" />
+                      {progressStep || 'Processing...'}
+                    </>
+                  ) : (
+                    'Start Section Splitting'
+                  )}
                 </button>
               </div>
 
@@ -428,13 +651,92 @@ const Phase3: React.FC = () => {
                 </p>
                 <button
                   onClick={startFieldCleaning}
-                  disabled={isProcessing}
+                  disabled={isProcessing || !!prefixError}
                   className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isProcessing ? 'Processing...' : 'Start Field Cleaning'}
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 inline animate-spin" />
+                      {progressStep || 'Processing...'}
+                    </>
+                  ) : (
+                    'Start Field Cleaning'
+                  )}
                 </button>
               </div>
             </div>
+
+            {/* Enhanced Processing Progress Display */}
+            {isProcessing && (
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Processing Status</h3>
+                  <div className="flex items-center">
+                    <Loader2 className="w-5 h-5 text-blue-600 animate-spin mr-2" />
+                    <span className="text-sm font-medium text-blue-700">In Progress</span>
+                  </div>
+                </div>
+                
+                {progressStep && (
+                  <div className="mb-3">
+                    <div className="text-base font-medium text-gray-800 mb-1">
+                      {progressStep}
+                    </div>
+                    {progressDetails && (
+                      <div className="text-sm text-gray-600">
+                        {progressDetails}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {processingStats && (
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-gray-700">{processingStats.operation}</span>
+                      <span className="text-sm text-gray-600">
+                        {processingStats.processed.toLocaleString()} processed
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div 
+                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out" 
+                        style={{ width: `${(processingStats.processed / processingStats.total) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Enhanced Error Display */}
+            {operationError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+                <div className="flex items-start">
+                  <AlertCircle className="w-5 h-5 text-red-600 mr-3 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="text-base font-medium text-red-900 mb-2">Operation Failed</h3>
+                    <div className="text-sm text-red-800 mb-3">{operationError}</div>
+                    <div className="text-xs text-red-600">
+                      <strong>Troubleshooting Steps:</strong>
+                      <ul className="mt-2 ml-4 list-disc space-y-1">
+                        <li>Verify database connection is active</li>
+                        <li>Check that source collections contain data</li>
+                        <li>Ensure sufficient permissions for target database</li>
+                        <li>Review configuration settings for accuracy</li>
+                        <li>Try refreshing the page and attempting the operation again</li>
+                      </ul>
+                    </div>
+                    <button
+                      onClick={() => setOperationError(null)}
+                      className="mt-3 text-sm text-red-600 hover:text-red-800 underline"
+                    >
+                      Dismiss error
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Status Overview */}
             {status && (
@@ -492,9 +794,9 @@ const Phase3: React.FC = () => {
               <h4 className="font-medium text-blue-900 mb-2">Section Splitting Process</h4>
               <ul className="text-blue-700 text-sm space-y-1">
                 <li>• Read all documents from {config.source_database}.{config.source_collection}</li>
-                <li>• Split into {config.batch_size} equal batches</li>
+                <li>• Split into exactly {config.batch_size} batches with documents distributed evenly</li>
                 <li>• Create collections: {config.target_collection_prefix}1, {config.target_collection_prefix}2, ...</li>
-                <li>• Distribute statutes across batches</li>
+                <li>• Distribute statutes across batches as evenly as possible</li>
                 <li>• Maintain section structure and metadata</li>
               </ul>
             </div>
@@ -502,7 +804,7 @@ const Phase3: React.FC = () => {
             <div className="flex space-x-4">
               <button
                 onClick={startSectionSplitting}
-                disabled={isProcessing}
+                disabled={isProcessing || !!prefixError}
                 className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isProcessing ? 'Processing...' : 'Start Section Splitting'}
@@ -512,12 +814,6 @@ const Phase3: React.FC = () => {
                 className="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700"
               >
                 Generate Metadata
-              </button>
-              <button
-                onClick={fetchStatus}
-                className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700"
-              >
-                Refresh Status
               </button>
             </div>
           </div>
@@ -605,7 +901,7 @@ const Phase3: React.FC = () => {
             <div className="flex space-x-4">
               <button
                 onClick={startBatchCleaning}
-                disabled={isProcessing || (!cleanAllBatches && selectedBatches.length === 0)}
+                disabled={isProcessing || !!prefixError || (!cleanAllBatches && selectedBatches.length === 0)}
                 className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isProcessing ? 'Processing...' : 
@@ -618,11 +914,178 @@ const Phase3: React.FC = () => {
                 Generate Metadata
               </button>
               <button
-                onClick={fetchStatus}
+                onClick={refreshStatus}
                 className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700"
               >
                 Refresh Status
               </button>
+              <button
+                onClick={async () => {
+                  try {
+                    setIsProcessing(true);
+                    const response = await fetch('/api/v1/phase3/batch-diagnostics', {
+                      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config)
+                    });
+                    if (response.ok) {
+                      const data = await response.json();
+                      setDiagnostics(data.batches || []);
+                    } else {
+                      const err = await response.json();
+                      alert('Diagnostics failed: ' + (err.detail || err.message));
+                    }
+                  } catch (e) {
+                    console.error('Diagnostics error', e);
+                    alert('Diagnostics failed');
+                  } finally {
+                    setIsProcessing(false);
+                  }
+                }}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+              >
+                Run Diagnostics
+              </button>
+            </div>
+            {diagnostics && diagnostics.length > 0 && (
+              <div className="mt-4 bg-white p-3 rounded border text-sm">
+                <h4 className="font-medium mb-2">Batch Diagnostics</h4>
+                {diagnostics.map((d: any) => (
+                  <div key={d.batch_name} className="mb-2">
+                    <strong>{d.batch_name}</strong>: total={d.total_documents}, legacy_cleaned={d.legacy_cleaned_count}, modern_cleaned={d.modern_cleaned_count}, any_cleaned={d.any_cleaned_count}
+                    <div className="text-xs text-gray-600 mt-1">legacy sample ids: {d.legacy_samples.join(', ') || 'none'}</div>
+                    <div className="text-xs text-gray-600">modern sample ids: {d.modern_samples.join(', ') || 'none'}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {/* Pakistan Law Validation Tab */}
+        {activeTab === 'pakistan-law-validation' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center">
+              <label className="flex items-center mr-4">
+                <input type="checkbox" checked={dryRun} onChange={e => setDryRun(e.target.checked)} className="mr-2" />
+                <span className="font-medium">Dry Run (Preview Only)</span>
+              </label>
+              <span className="text-xs text-gray-500">Preview which statutes will be dropped before actual deletion.</span>
+            </div>
+              <div className="flex items-center">
+              <label className="flex items-center mr-4">
+                <input type="checkbox" checked={saveMetadata} onChange={e => setSaveMetadata(e.target.checked)} className="mr-2" />
+                <span className="font-medium text-sm">Generate Metadata</span>
+              </label>
+              <span className="text-xs text-gray-500">Save validation statistics and analysis.</span>
+            </div>
+          </div>
+          {validationResults && (
+            <div className="bg-gray-50 p-4 rounded-lg mt-4">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="font-medium text-gray-900">Validation Results</h4>
+                {validationResults.metadata_file && (
+                  <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                    📁 Metadata: {validationResults.metadata_file}
+                  </span>
+                )}
+              </div>
+              <div className="mb-2 text-sm">
+                <strong>Scanned:</strong> {validationResults.total_scanned} &nbsp;
+                <strong>Dropped:</strong> {validationResults.total_dropped} &nbsp;
+                <strong>Kept:</strong> {validationResults.total_kept} &nbsp;
+                <strong>Batches:</strong> {validationResults.processed_batches}
+              </div>
+              {validationResults.metadata && (
+                <div className="mb-2 text-xs bg-white p-2 rounded border">
+                  <strong>Drop Analysis:</strong>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    <div>Drop Rate: {validationResults.metadata.validation_results?.drop_rate?.toFixed(1)}%</div>
+                    <div>Keep Rate: {validationResults.metadata.validation_results?.keep_rate?.toFixed(1)}%</div>
+                  </div>
+                  {validationResults.metadata.drop_reason_analysis?.top_drop_reasons && (
+                    <div className="mt-1">
+                      <strong>Top Reasons:</strong> {validationResults.metadata.drop_reason_analysis.top_drop_reasons.map(([reason, count]: [string, number]) => `${reason} (${count})`).join(', ')}
+                    </div>
+                  )}
+                </div>
+              )}
+              {validationResults.dropped_docs.length > 0 && (
+                <div className="mb-2">
+                  <strong>Dropped Statutes:</strong>
+                  <ul className="list-disc ml-6 text-xs">
+                    {validationResults.dropped_docs.map((doc: any, idx: number) => (
+                      <li key={doc.name + idx}>
+                        {doc.name}
+                        <span className="text-red-600"> ({doc.reason})</span>
+                        <span className="text-gray-500"> [{doc.batch}]</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {validationResults.kept_docs.length > 0 && (
+                <div className="mb-2">
+                  <strong>Kept Statutes:</strong>
+                  <ul className="list-disc ml-6 text-xs">
+                    {validationResults.kept_docs.map((doc: any, idx: number) => (
+                      <li key={doc.name + idx}>
+                        {doc.name}
+                        <span className="text-green-600"> [Kept]</span>
+                        <span className="text-gray-500"> [{doc.batch}]</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="text-xs text-gray-500">{validationResults.dry_run ? "No changes made (preview only)" : "Non-Pakistan statutes have been dropped."}</div>
+            </div>
+          )}
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">Pakistan Law Validation Configuration</h3>
+              <button
+                onClick={fetchAvailableBatches}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              >Load Available Batches</button>
+            </div>
+            <div className="bg-yellow-50 p-4 rounded-lg">
+              <ul className="text-yellow-700 text-sm space-y-1">
+                <li>• Drop non-Pakistan laws using CLI logic</li>
+                <li>• Validate all or selected batches</li>
+              </ul>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="space-y-3">
+                <label className="flex items-center"><input type="radio" checked={cleanAllBatches} onChange={() => setCleanAllBatches(true)} className="mr-2"/>Validate All</label>
+                <label className="flex items-center"><input type="radio" checked={!cleanAllBatches} onChange={() => setCleanAllBatches(false)} className="mr-2"/>Validate Selected</label>
+              </div>
+              {/* Show guidance when batches not loaded */}
+              {availableBatches === null && (
+                <div className="text-center py-4 text-gray-500">
+                  Click "Load Available Batches" to load batches for validation
+                </div>
+              )}
+              {/* Batch Selection */}
+              {/* Batch Selection */}
+              {!cleanAllBatches && availableBatches && availableBatches.batches.length > 0 && (
+                <div className="mt-4 grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                  {availableBatches.batches.map((b: any) => (
+                    <label key={b.batch_number} className="flex items-center space-x-2 text-sm">
+                      <input type="checkbox" checked={selectedBatches.includes(b.batch_number)} onChange={() => toggleBatchSelection(b.batch_number)} className="rounded"/>
+                      <span className={b.is_cleaned ? 'text-green-600' : 'text-gray-700'}>{b.batch_name} ({b.document_count})</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* No batches fallback */}
+            {availableBatches && availableBatches.batches.length === 0 && (
+              <div className="text-center py-4 text-gray-500">
+                No batch collections found. Run section splitting first to create batches.
+              </div>
+            )}
+            <div className="flex space-x-4">
+              <button onClick={startPakistanLawValidation} disabled={isProcessing || !!prefixError || (!cleanAllBatches && selectedBatches.length===0)} className="bg-yellow-600 text-white px-6 py-2 rounded-md hover:bg-yellow-700 disabled:opacity-50">{isProcessing?'Processing...':(cleanAllBatches?'Validate All':'Validate Selected')}</button>
+              <button onClick={previewValidationMetadata} disabled={isProcessing || !!prefixError || (!cleanAllBatches && selectedBatches.length===0)} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50">Preview Metadata</button>
+              <button onClick={refreshStatus} className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700">Refresh Status</button>
             </div>
           </div>
         )}
@@ -645,23 +1108,97 @@ const Phase3: React.FC = () => {
                   batchPreview.batches.map((batch: any, index: number) => (
                     <div key={index} className="bg-gray-50 p-4 rounded-lg">
                       <h4 className="font-medium text-gray-900 mb-2">{batch.batch_name}</h4>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                         <div>
                           <span className="font-medium">Documents:</span> {batch.document_count}
                         </div>
                         <div>
-                          <span className="font-medium">Sample Documents:</span>
+                          <span className="font-medium">Sample Documents:</span> {batch.sample_documents?.length || 0}
                         </div>
                       </div>
+                      
                       {batch.sample_documents && batch.sample_documents.length > 0 && (
-                        <div className="mt-2">
-                          <div className="text-xs text-gray-500 mb-1">Sample:</div>
-                          {batch.sample_documents.map((doc: any, docIndex: number) => (
-                            <div key={docIndex} className="bg-white p-2 rounded text-xs border">
-                              <div><strong>Name:</strong> {doc.Statute_Name || 'N/A'}</div>
-                              <div><strong>Sections:</strong> {doc.Sections?.length || 0}</div>
-                            </div>
-                          ))}
+                        <div className="space-y-2">
+                          <div className="text-xs text-gray-500 mb-2">Sample Documents (click to expand):</div>
+                          {batch.sample_documents.map((doc: any, docIndex: number) => {
+                            const statuteKey = `${batch.batch_name}-${docIndex}`;
+                            const isStatuteExpanded = expandedStatutes[statuteKey];
+                            
+                            return (
+                              <div key={docIndex} className="bg-white border rounded-lg">
+                                {/* Statute Header */}
+                                <div 
+                                  className="p-3 cursor-pointer hover:bg-gray-50 flex items-center justify-between"
+                                  onClick={() => toggleStatuteExpansion(statuteKey)}
+                                >
+                                  <div className="flex-1">
+                                    <div className="font-medium text-sm text-gray-900">
+                                      {doc.Statute_Name || 'N/A'}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      {doc.Sections?.length || 0} sections • Province: {doc.Province || 'N/A'}
+                                    </div>
+                                  </div>
+                                  <div className="text-gray-400">
+                                    {isStatuteExpanded ? '▼' : '▶'}
+                                  </div>
+                                </div>
+                                
+                                {/* Expanded Sections */}
+                                {isStatuteExpanded && doc.section_details && (
+                                  <div className="border-t border-gray-100">
+                                    {doc.section_details.map((section: any, sectionIndex: number) => {
+                                      const sectionKey = `${statuteKey}-section-${sectionIndex}`;
+                                      const isSectionExpanded = expandedSections[sectionKey];
+                                      
+                                      return (
+                                        <div key={sectionIndex} className="border-b border-gray-50 last:border-b-0">
+                                          {/* Section Header */}
+                                          <div 
+                                            className="p-3 pl-6 cursor-pointer hover:bg-gray-25 flex items-center justify-between"
+                                            onClick={() => toggleSectionExpansion(sectionKey)}
+                                          >
+                                            <div className="flex-1">
+                                              <div className="font-medium text-sm text-blue-900">
+                                                {section.section_title}
+                                              </div>
+                                              <div className="text-xs text-gray-500 mt-1">
+                                                {section.content_preview}
+                                              </div>
+                                            </div>
+                                            <div className="text-gray-400 text-sm">
+                                              {isSectionExpanded ? '▼' : '▶'}
+                                            </div>
+                                          </div>
+                                          
+                                          {/* Full Section Content */}
+                                          {isSectionExpanded && (
+                                            <div className="p-3 pl-8 bg-gray-50 border-t border-gray-100">
+                                              <div className="text-sm text-gray-800 whitespace-pre-wrap">
+                                                {section.content || 'No content available'}
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                                
+                                {/* Fallback for documents without section_details */}
+                                {isStatuteExpanded && !doc.section_details && doc.Sections && (
+                                  <div className="border-t border-gray-100 p-3">
+                                    <div className="text-xs text-gray-500 mb-2">Basic Section Info:</div>
+                                    {doc.Sections.map((section: any, sectionIndex: number) => (
+                                      <div key={sectionIndex} className="text-xs text-gray-700 mb-1">
+                                        • {section.Section || `Section ${sectionIndex + 1}`}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -845,7 +1382,7 @@ const Phase3: React.FC = () => {
             )}
           </div>
         )}
-      </div>
+  </div>
     </div>
   );
 };

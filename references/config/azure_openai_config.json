@@ -1,7 +1,7 @@
 {
   "azure_openai": {
     "azure_endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
-    "azure_api_key": "your-azure-api-key-here",
+    "azure_api_key": "EkkatBw5ktWZPOs3unXeiH5lNAKpMAYOYJqQuaOpiAGjDHDY4xZUJQQJ99BGACYeBjFXJ3w3AAAAACOGtZUY",
     "azure_api_version": "2024-11-01-preview",
     "gpt_model": "gpt-4o",
     "max_tokens": 500,

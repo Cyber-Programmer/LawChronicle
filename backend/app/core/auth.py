@@ -11,6 +11,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT token handling
 security = HTTPBearer()
+# Optional security that does not automatically error when missing
+optional_security = HTTPBearer(auto_error=False)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
@@ -61,6 +63,35 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         )
     
     return {"user_id": user_id}
+
+
+async def optional_current_user(credentials: HTTPAuthorizationCredentials = Depends(optional_security)):
+    """Optional current user: returns None when no valid credentials are provided."""
+    if credentials is None:
+        return None
+    token = credentials.credentials
+    payload = verify_token(token)
+    if payload is None:
+        return None
+    user_id: str = payload.get("sub")
+    if user_id is None:
+        return None
+    return {"user_id": user_id}
+
+
+async def get_current_user_with_roles(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Return full token payload (including roles) for role-based checks."""
+    token = credentials.credentials
+    payload = verify_token(token)
+
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return payload
 
 def authenticate_user(username: str, password: str, hashed_password: str) -> bool:
     """Authenticate user with username and password"""

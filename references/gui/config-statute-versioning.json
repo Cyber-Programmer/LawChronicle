@@ -1,0 +1,62 @@
+{
+  "mongo_uri": "mongodb://localhost:27017",
+  "source_db": "Batch-Base-Grouped-Filled",
+  "source_collection": "batch2",
+  "target_db": "Batch-Statute-Versioned-Filled",
+  "target_collection": "batch2",
+  "azure_api_key": "EkkatBw5ktWZPOs3unXeiH5lNAKpMAYOYJqQuaOpiAGjDHDY4xZUJQQJ99BGACYeBjFXJ3w3AAAAACOGtZUY",
+  "azure_endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
+  "gpt_model": "gpt-4o",
+  "azure_api_version": "2024-11-01-preview",
+  "enable_gpt_ordering": true,
+  "enable_date_validation": true,
+  "processing": {
+    "batch_size": 1000,
+    "max_workers": 4,
+    "enable_gpt_disambiguation": true,
+    "enable_timeline_visualization": true,
+    "enable_progress_tracking": true,
+    "date_formats": [
+      "%Y-%m-%d",
+      "%d-%m-%Y",
+      "%d/%m/%Y",
+      "%m/%d/%Y",
+      "%d-%b-%Y",
+      "%d %B %Y",
+      "%B %d, %Y"
+    ]
+  },
+  "ui": {
+    "window_width": 1400,
+    "window_height": 900,
+    "refresh_interval": 1000,
+    "max_log_entries": 1000,
+    "auto_save_interval": 300,
+    "timeline_height": 400,
+    "details_height": 200
+  },
+  "export": {
+    "default_format": "json",
+    "include_metadata": true,
+    "include_version_details": true,
+    "include_gpt_analysis": true,
+    "include_date_validation": true
+  },
+  "logging": {
+    "level": "INFO",
+    "file_output": true,
+    "console_output": true,
+    "max_file_size": "10MB"
+  },
+  "versioning": {
+    "default_labels": [
+      "Original",
+      "First Amendment",
+      "Second Amendment",
+      "Third Amendment"
+    ],
+    "confidence_threshold": 0.7,
+    "enable_manual_override": true,
+    "enable_conflict_resolution": true
+  }
+} 

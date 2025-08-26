@@ -1,0 +1,146 @@
+{
+  "operation_type": "pakistan_law_validation",
+  "total_statutes_processed": 6799,
+  "validation_results": {
+    "total_dropped": 465,
+    "total_kept": 6334,
+    "drop_rate": 6.839241064862479,
+    "keep_rate": 93.16075893513752
+  },
+  "drop_reason_analysis": {
+    "reason_distribution": {
+      "Pre-1947": 212,
+      "Unknown reason": 200,
+      "Foreign statute": 53
+    },
+    "top_drop_reasons": [
+      [
+        "Pre-1947",
+        212
+      ],
+      [
+        "Unknown reason",
+        200
+      ],
+      [
+        "Foreign statute",
+        53
+      ]
+    ],
+    "reason_percentages": {
+      "Pre-1947": 45.59139784946237,
+      "Unknown reason": 43.01075268817204,
+      "Foreign statute": 11.397849462365592
+    }
+  },
+  "batch_distribution": {
+    "batches_processed": 10,
+    "batch_stats": {
+      "batch_3": {
+        "dropped": 61,
+        "kept": 619
+      },
+      "batch_7": {
+        "dropped": 10,
+        "kept": 670
+      },
+      "batch_1": {
+        "dropped": 24,
+        "kept": 656
+      },
+      "batch_10": {
+        "dropped": 48,
+        "kept": 631
+      },
+      "batch_6": {
+        "dropped": 80,
+        "kept": 600
+      },
+      "batch_2": {
+        "dropped": 51,
+        "kept": 629
+      },
+      "batch_4": {
+        "dropped": 64,
+        "kept": 616
+      },
+      "batch_9": {
+        "dropped": 39,
+        "kept": 641
+      },
+      "batch_8": {
+        "dropped": 42,
+        "kept": 638
+      },
+      "batch_5": {
+        "dropped": 46,
+        "kept": 634
+      }
+    },
+    "batch_effectiveness": {
+      "batch_3": {
+        "total": 680,
+        "drop_rate": 8.970588235294118
+      },
+      "batch_7": {
+        "total": 680,
+        "drop_rate": 1.4705882352941175
+      },
+      "batch_1": {
+        "total": 680,
+        "drop_rate": 3.5294117647058822
+      },
+      "batch_10": {
+        "total": 679,
+        "drop_rate": 7.069219440353461
+      },
+      "batch_6": {
+        "total": 680,
+        "drop_rate": 11.76470588235294
+      },
+      "batch_2": {
+        "total": 680,
+        "drop_rate": 7.5
+      },
+      "batch_4": {
+        "total": 680,
+        "drop_rate": 9.411764705882353
+      },
+      "batch_9": {
+        "total": 680,
+        "drop_rate": 5.735294117647059
+      },
+      "batch_8": {
+        "total": 680,
+        "drop_rate": 6.176470588235294
+      },
+      "batch_5": {
+        "total": 680,
+        "drop_rate": 6.764705882352941
+      }
+    }
+  },
+  "processing_details": {
+    "dry_run": false,
+    "target_database": "Batched-Statutes",
+    "target_collection_prefix": "batch_",
+    "batch_numbers": null,
+    "validation_method": "rule_based_with_gpt_fallback",
+    "processing_date": "2025-08-15",
+    "processing_timestamp": "2025-08-15T15:31:15.032354"
+  },
+  "validation_methodology": {
+    "rule_based_checks": [
+      "pre_1947_date_check",
+      "foreign_country_keywords",
+      "pakistan_mentions",
+      "pakistani_provinces",
+      "gazette_of_pakistan"
+    ],
+    "gpt_fallback": true,
+    "confidence_level": "high"
+  },
+  "script": "api_phase3_pakistan_validation",
+  "db_name": "Batched-Statutes",
+  "collection": "batch_"
+}

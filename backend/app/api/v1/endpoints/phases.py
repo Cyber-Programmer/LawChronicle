@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
-from ...core.auth import get_current_user
-from shared.types.common import BaseResponse, PhaseMetadata, ProcessingStatus
+from core.auth import get_current_user, optional_current_user
+from shared.types.common import BaseResponse, PhaseMetadata
 from datetime import datetime
 import logging
 
@@ -18,7 +18,7 @@ phase_status = {
 }
 
 @router.get("/status", response_model=BaseResponse)
-async def get_phases_status(current_user: dict = Depends(get_current_user)):
+async def get_phases_status(current_user: dict = Depends(optional_current_user)):
     """Get status of all pipeline phases"""
     return BaseResponse(
         success=True,
@@ -29,7 +29,7 @@ async def get_phases_status(current_user: dict = Depends(get_current_user)):
 @router.get("/{phase_id}/status", response_model=BaseResponse)
 async def get_phase_status(
     phase_id: int,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(optional_current_user)
 ):
     """Get status of a specific phase"""
     if phase_id not in phase_status:
@@ -47,7 +47,7 @@ async def get_phase_status(
 
 # Phase 1: Data Ingestion
 @router.post("/1/start", response_model=BaseResponse)
-async def start_phase_1(current_user: dict = Depends(get_current_user)):
+async def start_phase_1(current_user: dict = Depends(optional_current_user)):
     """Start Phase 1: Data Ingestion & Analysis"""
     try:
         phase_status[1].status = "in_progress"
@@ -72,7 +72,7 @@ async def start_phase_1(current_user: dict = Depends(get_current_user)):
 
 # Phase 2: Database Normalization
 @router.post("/2/start", response_model=BaseResponse)
-async def start_phase_2(current_user: dict = Depends(get_current_user)):
+async def start_phase_2(current_user: dict = Depends(optional_current_user)):
     """Start Phase 2: Database Normalization"""
     try:
         phase_status[2].status = "in_progress"
@@ -97,7 +97,7 @@ async def start_phase_2(current_user: dict = Depends(get_current_user)):
 
 # Phase 3: Field Cleaning & Splitting
 @router.post("/3/start", response_model=BaseResponse)
-async def start_phase_3(current_user: dict = Depends(get_current_user)):
+async def start_phase_3(current_user: dict = Depends(optional_current_user)):
     """Start Phase 3: Field Cleaning & Splitting"""
     try:
         phase_status[3].status = "in_progress"
@@ -122,7 +122,7 @@ async def start_phase_3(current_user: dict = Depends(get_current_user)):
 
 # Phase 4: Date Processing
 @router.post("/4/start", response_model=BaseResponse)
-async def start_phase_4(current_user: dict = Depends(get_current_user)):
+async def start_phase_4(current_user: dict = Depends(optional_current_user)):
     """Start Phase 4: Date Processing"""
     try:
         phase_status[4].status = "in_progress"
@@ -147,7 +147,7 @@ async def start_phase_4(current_user: dict = Depends(get_current_user)):
 
 # Phase 5: Statute Versioning
 @router.post("/5/start", response_model=BaseResponse)
-async def start_phase_5(current_user: dict = Depends(get_current_user)):
+async def start_phase_5(current_user: dict = Depends(optional_current_user)):
     """Start Phase 5: Statute Versioning"""
     try:
         phase_status[5].status = "in_progress"
@@ -172,7 +172,7 @@ async def start_phase_5(current_user: dict = Depends(get_current_user)):
 
 # Phase 6: Section Versioning
 @router.post("/6/start", response_model=BaseResponse)
-async def start_phase_6(current_user: dict = Depends(get_current_user)):
+async def start_phase_6(current_user: dict = Depends(optional_current_user)):
     """Start Phase 6: Section Versioning"""
     try:
         phase_status[6].status = "in_progress"
@@ -198,7 +198,7 @@ async def start_phase_6(current_user: dict = Depends(get_current_user)):
 @router.post("/{phase_id}/pause", response_model=BaseResponse)
 async def pause_phase(
     phase_id: int,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(optional_current_user)
 ):
     """Pause a running phase"""
     if phase_id not in phase_status:
@@ -225,7 +225,7 @@ async def pause_phase(
 @router.post("/{phase_id}/resume", response_model=BaseResponse)
 async def resume_phase(
     phase_id: int,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(optional_current_user)
 ):
     """Resume a paused phase"""
     if phase_id not in phase_status:

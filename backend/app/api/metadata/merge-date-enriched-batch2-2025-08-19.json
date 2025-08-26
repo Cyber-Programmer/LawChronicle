@@ -1,0 +1,82 @@
+{
+  "batch": "batch_2",
+  "target_collection": "batch_2",
+  "start_time": "2025-08-19T08:35:14.798953",
+  "end_time": "2025-08-19T08:35:15.494071",
+  "duration_seconds": 0.695118,
+  "total_documents": 629,
+  "processed": 629,
+  "written": 629,
+  "failures": 0,
+  "samples": [
+    {
+      "_id": "689f056242d7d99cf9e6fcb0",
+      "Date": "05-Jul-1974",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 90,
+        "processing_timestamp": "2025-08-19T08:35:14.821031",
+        "original_fields": [
+          "Date"
+        ],
+        "merged_date": "05-Jul-1974",
+        "normalized_date": "05-Jul-1974"
+      }
+    },
+    {
+      "_id": "689f056242d7d99cf9e6fcb1",
+      "Date": "21-Feb-1993",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 90,
+        "processing_timestamp": "2025-08-19T08:35:14.835136",
+        "original_fields": [
+          "Date"
+        ],
+        "merged_date": "21-Feb-1993",
+        "normalized_date": "21-Feb-1993"
+      }
+    },
+    {
+      "_id": "689f056242d7d99cf9e6fcb2",
+      "Date": "01-Dec-1994",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 90,
+        "processing_timestamp": "2025-08-19T08:35:14.836415",
+        "original_fields": [
+          "Date"
+        ],
+        "merged_date": "01-Dec-1994",
+        "normalized_date": "01-Dec-1994"
+      }
+    },
+    {
+      "_id": "689f056242d7d99cf9e6fcb3",
+      "Date": "05-Apr-1994",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 90,
+        "processing_timestamp": "2025-08-19T08:35:14.837374",
+        "original_fields": [
+          "Date"
+        ],
+        "merged_date": "05-Apr-1994",
+        "normalized_date": "05-Apr-1994"
+      }
+    },
+    {
+      "_id": "689f056242d7d99cf9e6fcb4",
+      "Date": "",
+      "date_metadata": {
+        "extraction_method": "field_merge",
+        "confidence_score": 0,
+        "processing_timestamp": "2025-08-19T08:35:14.838187",
+        "original_fields": [],
+        "merged_date": null,
+        "normalized_date": null
+      }
+    }
+  ],
+  "date_format": "DD-MMM-YYYY"
+}
