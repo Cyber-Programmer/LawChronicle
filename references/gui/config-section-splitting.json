@@ -4,8 +4,8 @@
   "source_collection": "batch10",
   "target_db": "Batch-Section-Split",
   "target_collection": "batch10",
-  "azure_api_key": "EkkatBw5ktWZPOs3unXeiH5lNAKpMAYOYJqQuaOpiAGjDHDY4xZUJQQJ99BGACYeBjFXJ3w3AAAAACOGtZUY",
-  "azure_endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
+  "azure_api_key": "your-api-key-here",
+  "azure_endpoint": "your-azure-endpoint-here",
   "gpt_model": "gpt-4o",
   "azure_api_version": "2024-11-01-preview",
   "processing": {

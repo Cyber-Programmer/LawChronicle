@@ -1,7 +1,7 @@
 {
   "azure_openai": {
-    "api_key": "EkkatBw5ktWZPOs3unXeiH5lNAKpMAYOYJqQuaOpiAGjDHDY4xZUJQQJ99BGACYeBjFXJ3w3AAAAACOGtZUY",
-    "endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
+    "api_key": "your-api-key-here",
+    "endpoint": "your-azure-endpoint-here",
     "deployment_name": "gpt-4o",
     "api_version": "2024-11-01-preview",
     "model": "gpt-4o"

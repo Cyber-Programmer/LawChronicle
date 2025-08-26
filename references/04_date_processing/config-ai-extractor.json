@@ -3,7 +3,7 @@
     "db_name": "Statutes",
     "collection_name": "normalized_statutes",
     "api_key": "your-azure-api-key-here",
-    "azure_endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
+    "azure_endpoint": "your-azure-endpoint-here",
     "model": "gpt-4o",
     "api_version": "2024-11-01-preview"
 } 

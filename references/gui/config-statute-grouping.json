@@ -5,8 +5,8 @@
   "target_db": "Batch-Base-Grouped",
   "target_collection": "statute",
   "similarity_threshold": 0.8,
-  "azure_api_key": "EkkatBw5ktWZPOs3unXeiH5lNAKpMAYOYJqQuaOpiAGjDHDY4xZUJQQJ99BGACYeBjFXJ3w3AAAAACOGtZUY",
-  "azure_endpoint": "https://data-ai-interns.cognitiveservices.azure.com/",
+  "azure_api_key": "your-api-key-here",
+  "azure_endpoint": "your-azure-endpoint-here",
   "gpt_model": "gpt-4o",
   "azure_api_version": "2024-11-01-preview",
   "processing": {

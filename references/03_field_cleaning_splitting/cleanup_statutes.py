@@ -14,7 +14,7 @@ SOURCE_COLL = "batch2"
 CLEANED_DB = "Filled-Batch-Cleaned"
 CLEANED_COLL = "batch2"
 AZURE_OPENAI_API_KEY = "your-azure-api-key-here"
-AZURE_OPENAI_ENDPOINT = "https://data-ai-interns.cognitiveservices.azure.com/"
+AZURE_OPENAI_ENDPOINT = "your-azure-endpoint-here"
 AZURE_OPENAI_DEPLOYMENT = "gpt-4o"
 AZURE_OPENAI_API_VERSION = "2024-11-01-preview"
 

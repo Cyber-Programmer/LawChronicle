@@ -447,7 +447,7 @@ def gpt_check_section_order(section_a, section_b, meta=None):
         log(f"[GPT] Skipping GPT call (no AzureOpenAI). Defaulting to A. Sections: {section_a.get('definition','')} vs {section_b.get('definition','')}", verbose=VERBOSE)
         return {'order': 'A', 'reason': reason}
     AZURE_OPENAI_API_KEY = "your-azure-api-key-here"  # TODO: Set your key
-    AZURE_OPENAI_ENDPOINT = "https://data-ai-interns.cognitiveservices.azure.com/"  # TODO: Set your endpoint
+    AZURE_OPENAI_ENDPOINT = "your-azure-endpoint-here"  # TODO: Set your endpoint
     AZURE_OPENAI_DEPLOYMENT = "gpt-4o"
     AZURE_OPENAI_API_VERSION = "2024-11-01-preview"
     client_aoai = AzureOpenAI(
